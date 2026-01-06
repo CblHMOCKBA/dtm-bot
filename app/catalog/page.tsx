@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowLeft, SlidersHorizontal, X, Grid2X2, Square } from 'lucide-react';
+import { ArrowLeft, SlidersHorizontal, X, Grid2X2, LayoutGrid } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Car as CarType } from '@/types';
+import { Car as CarType, CarStatus } from '@/types';
 import CarCard from '@/components/CarCard';
 import CarCardSkeleton from '@/components/CarCardSkeleton';
 import { getTelegramWebApp } from '@/lib/telegram';
@@ -16,7 +16,8 @@ export default function CatalogPage() {
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'single' | 'double'>('single'); // Новое состояние для переключения вида
+  const [viewMode, setViewMode] = useState<'single' | 'double'>('single');
+  const [statusFilter, setStatusFilter] = useState<'all' | CarStatus>('all');
   
   // Фильтры
   const [filterBrand, setFilterBrand] = useState('');
@@ -44,7 +45,7 @@ export default function CatalogPage() {
 
   useEffect(() => {
     applyFilters();
-  }, [cars, searchQuery, filterBrand, filterYearFrom, filterYearTo, filterPriceFrom, filterPriceTo]);
+  }, [cars, searchQuery, filterBrand, filterYearFrom, filterYearTo, filterPriceFrom, filterPriceTo, statusFilter]);
 
   const loadCars = async () => {
     try {
@@ -69,6 +70,11 @@ export default function CatalogPage() {
 
   const applyFilters = () => {
     let filtered = [...cars];
+
+    // Фильтр по статусу
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(car => car.status === statusFilter);
+    }
 
     // Поиск
     if (searchQuery.trim()) {
@@ -111,11 +117,18 @@ export default function CatalogPage() {
     setFilterYearTo('');
     setFilterPriceFrom('');
     setFilterPriceTo('');
+    setStatusFilter('all');
     setSearchQuery('');
   };
 
-  // Получаем уникальные марки
   const uniqueBrands = Array.from(new Set(cars.map(car => car.brand))).sort();
+
+  const statusButtons: { value: 'all' | CarStatus; label: string }[] = [
+    { value: 'all', label: 'Все' },
+    { value: 'available', label: 'В наличии' },
+    { value: 'order', label: 'Под заказ' },
+    { value: 'inTransit', label: 'В пути' }
+  ];
 
   return (
     <div className="min-h-screen pb-6 racing-stripes">
@@ -145,37 +158,53 @@ export default function CatalogPage() {
           <div className="w-11"></div>
         </div>
 
-        {/* Поиск */}
+        {/* Кнопки статусов */}
         <div className="px-4 pb-3">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+            {statusButtons.map((status) => (
+              <button
+                key={status.value}
+                onClick={() => setStatusFilter(status.value)}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
+                  statusFilter === status.value
+                    ? 'bg-tg-accent text-white'
+                    : 'bg-tg-secondary-bg text-tg-hint hover:bg-tg-secondary-bg/80'
+                }`}
+              >
+                {status.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Поиск + Кнопки */}
+        <div className="px-4 pb-3 flex gap-2">
           <input
             type="text"
             placeholder="Поиск по марке, модели..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="tg-input"
+            className="flex-1 tg-input"
           />
-        </div>
-
-        {/* Кнопки фильтров и переключения вида */}
-        <div className="px-4 pb-3 flex gap-2">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex-1 tg-card py-3 px-4 flex items-center justify-center gap-2 hover:border-tg-accent transition-all active:scale-95"
-          >
-            <SlidersHorizontal className="w-4 h-4 text-tg-accent" />
-            <span className="text-sm font-semibold">Фильтры</span>
-          </button>
-
+          
           <button
             onClick={() => setViewMode(viewMode === 'single' ? 'double' : 'single')}
-            className="tg-card py-3 px-4 flex items-center justify-center gap-2 hover:border-tg-accent transition-all active:scale-95"
+            className="w-11 h-11 flex items-center justify-center tg-card hover:border-tg-accent transition-all active:scale-95"
             aria-label="Переключить вид"
           >
             {viewMode === 'single' ? (
-              <Grid2X2 className="w-4 h-4 text-tg-accent" />
+              <Grid2X2 className="w-5 h-5 text-tg-accent" />
             ) : (
-              <Square className="w-4 h-4 text-tg-accent" />
+              <LayoutGrid className="w-5 h-5 text-tg-accent" />
             )}
+          </button>
+
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="w-11 h-11 flex items-center justify-center tg-card hover:border-tg-accent transition-all active:scale-95"
+            aria-label="Фильтры"
+          >
+            <SlidersHorizontal className="w-5 h-5 text-tg-accent" />
           </button>
         </div>
 
@@ -282,16 +311,16 @@ export default function CatalogPage() {
             </div>
 
             {/* Кнопки */}
-            <div className="grid grid-cols-2 gap-3 pt-2">
+            <div className="flex gap-3 pt-4">
               <button
                 onClick={resetFilters}
-                className="tg-button-secondary tg-button"
+                className="flex-1 py-3 px-4 rounded-lg border-2 border-tg-hint/30 font-semibold transition-all hover:border-tg-accent"
               >
                 Сбросить
               </button>
               <button
                 onClick={() => setShowFilters(false)}
-                className="tg-button"
+                className="flex-1 tg-button"
               >
                 Применить
               </button>
@@ -304,7 +333,7 @@ export default function CatalogPage() {
       <div className="px-4 pt-4">
         <div className="max-w-3xl mx-auto">
           {loading ? (
-            <div className="grid grid-cols-1 gap-4">
+            <div className={`grid ${viewMode === 'single' ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
               {[1, 2, 3, 4].map((i) => (
                 <CarCardSkeleton key={i} />
               ))}

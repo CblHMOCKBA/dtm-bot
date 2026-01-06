@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Grid2X2, Square } from 'lucide-react';
+import { ArrowLeft, Grid2X2, LayoutGrid } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Car as CarType } from '@/types';
@@ -12,9 +12,11 @@ import { getTelegramWebApp } from '@/lib/telegram';
 export default function SoldPage() {
   const router = useRouter();
   const [cars, setCars] = useState<CarType[]>([]);
+  const [filteredCars, setFilteredCars] = useState<CarType[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
-  const [viewMode, setViewMode] = useState<'single' | 'double'>('single'); // Новое состояние
+  const [viewMode, setViewMode] = useState<'single' | 'double'>('single');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const tg = getTelegramWebApp();
@@ -33,6 +35,10 @@ export default function SoldPage() {
     };
   }, [router]);
 
+  useEffect(() => {
+    applySearch();
+  }, [cars, searchQuery]);
+
   const loadSoldCars = async () => {
     try {
       setLoading(true);
@@ -46,11 +52,25 @@ export default function SoldPage() {
       if (error) throw error;
 
       setCars(data || []);
+      setFilteredCars(data || []);
       setTotalCount(count || 0);
     } catch (error) {
       console.error('Error loading sold cars:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const applySearch = () => {
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      const filtered = cars.filter(car => 
+        car.brand.toLowerCase().includes(query) ||
+        car.model.toLowerCase().includes(query)
+      );
+      setFilteredCars(filtered);
+    } else {
+      setFilteredCars(cars);
     }
   };
 
@@ -80,55 +100,66 @@ export default function SoldPage() {
             <p className="text-xs text-tg-hint uppercase tracking-wider">Проданные автомобили</p>
           </div>
 
+          <div className="w-11"></div>
+        </div>
+
+        {/* Поиск + Кнопка вида */}
+        <div className="px-4 pb-3 flex gap-2">
+          <input
+            type="text"
+            placeholder="Поиск по марке, модели..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1 tg-input"
+          />
+          
           <button
             onClick={() => setViewMode(viewMode === 'single' ? 'double' : 'single')}
-            className="premium-back-button"
+            className="w-11 h-11 flex items-center justify-center tg-card hover:border-tg-accent transition-all active:scale-95"
             aria-label="Переключить вид"
           >
             {viewMode === 'single' ? (
               <Grid2X2 className="w-5 h-5 text-tg-accent" />
             ) : (
-              <Square className="w-5 h-5 text-tg-accent" />
+              <LayoutGrid className="w-5 h-5 text-tg-accent" />
             )}
           </button>
+        </div>
+
+        {/* Счётчик */}
+        <div className="px-4 pb-3">
+          <div className="text-sm text-tg-hint text-center">
+            {filteredCars.length === 0 && !loading && 'Ничего не найдено'}
+            {filteredCars.length > 0 && `Найдено: ${filteredCars.length} из ${totalCount} проданных`}
+          </div>
         </div>
       </div>
 
       {/* Контент */}
       <div className="px-4 pt-4">
         <div className="max-w-3xl mx-auto">
-          {/* Статистика */}
-          <div className="mb-6">
-            <div className="tg-card p-6 text-center">
-              <div className="text-4xl font-bold text-gradient mb-2">
-                {totalCount}
-              </div>
-              <div className="text-sm text-tg-hint uppercase tracking-wider">
-                Всего продано автомобилей
-              </div>
-            </div>
-          </div>
-
           {/* Список */}
           {loading ? (
-            <div className="grid grid-cols-1 gap-4">
+            <div className={`grid ${viewMode === 'single' ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
               {[1, 2, 3, 4].map((i) => (
                 <CarCardSkeleton key={i} />
               ))}
             </div>
-          ) : cars.length === 0 ? (
+          ) : filteredCars.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-tg-hint text-lg mb-2">Пока нет проданных автомобилей</p>
+              <p className="text-tg-hint text-lg mb-2">
+                {searchQuery ? 'Ничего не найдено' : 'Пока нет проданных автомобилей'}
+              </p>
               <button
-                onClick={() => router.push('/catalog')}
+                onClick={() => searchQuery ? setSearchQuery('') : router.push('/catalog')}
                 className="tg-button mt-4"
               >
-                Перейти в каталог
+                {searchQuery ? 'Сбросить поиск' : 'Перейти в каталог'}
               </button>
             </div>
           ) : (
             <div className={`grid ${viewMode === 'single' ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
-              {cars.map((car) => (
+              {filteredCars.map((car) => (
                 <CarCard key={car.id} car={car} />
               ))}
             </div>
