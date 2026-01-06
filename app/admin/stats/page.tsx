@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { getTelegramWebApp, isAdmin } from '@/lib/telegram';
-import { ArrowLeft, Car, TrendingUp, Users, Send, Eye, Crown, CreditCard, CircleDot } from 'lucide-react';
+import { ArrowLeft, Car, TrendingUp, Users, Send, Eye, Crown } from 'lucide-react';
 
 interface Stats {
   totalCars: number;
@@ -13,11 +13,6 @@ interface Stats {
   totalUsers: number;
   totalPosts: number;
   viewsToday: number;
-  // НОВОЕ: Статистика номеров и шин
-  availablePlates: number;
-  soldPlates: number;
-  availableTires: number;
-  soldTires: number;
 }
 
 export default function StatsPage() {
@@ -29,10 +24,6 @@ export default function StatsPage() {
     totalUsers: 0,
     totalPosts: 0,
     viewsToday: 0,
-    availablePlates: 0,
-    soldPlates: 0,
-    availableTires: 0,
-    soldTires: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -88,30 +79,6 @@ export default function StatsPage() {
         .from('posts')
         .select('*', { count: 'exact', head: true });
 
-      // НОВОЕ: Номера в наличии
-      const { count: availablePlates } = await supabase
-        .from('license_plates')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'available');
-
-      // НОВОЕ: Проданные номера
-      const { count: soldPlates } = await supabase
-        .from('license_plates')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'sold');
-
-      // НОВОЕ: Шины в наличии
-      const { count: availableTires } = await supabase
-        .from('tires')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'available');
-
-      // НОВОЕ: Проданные шины
-      const { count: soldTires } = await supabase
-        .from('tires')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'sold');
-
       setStats({
         totalCars: totalCars || 0,
         availableCars: availableCars || 0,
@@ -119,10 +86,6 @@ export default function StatsPage() {
         totalUsers: totalUsers || 0,
         totalPosts: totalPosts || 0,
         viewsToday: 0,
-        availablePlates: availablePlates || 0,
-        soldPlates: soldPlates || 0,
-        availableTires: availableTires || 0,
-        soldTires: soldTires || 0,
       });
     } catch (error) {
       console.error('Error loading stats:', error);
@@ -159,7 +122,7 @@ export default function StatsPage() {
           {gradient && <Crown className="w-5 h-5 text-amber-500" />}
         </div>
         
-        <div className={`text-3xl font-bold mb-1 ${gradient ? 'text-gradient' : ''}`}>
+        <div className={`text-3xl font-bold mb-1 pl-1 ${gradient ? 'text-gradient' : ''}`}>
           {loading ? (
             <div className="skeleton-text h-8 w-20 rounded"></div>
           ) : (
@@ -232,41 +195,6 @@ export default function StatsPage() {
           />
         </div>
 
-        {/* НОВОЕ: Номера и Шины */}
-        <div>
-          <h2 className="text-sm font-bold text-tg-hint uppercase tracking-wider mb-3 mt-6">
-            Дополнительные товары
-          </h2>
-          <div className="grid grid-cols-2 gap-3">
-            <StatCard
-              icon={CreditCard}
-              label="Номеров в наличии"
-              value={stats.availablePlates}
-              color="purple-500"
-            />
-            <StatCard
-              icon={CircleDot}
-              label="Комплектов шин"
-              value={stats.availableTires}
-              color="orange-500"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3 mt-3">
-            <StatCard
-              icon={CreditCard}
-              label="Номеров продано"
-              value={stats.soldPlates}
-              color="purple-400"
-            />
-            <StatCard
-              icon={CircleDot}
-              label="Шин продано"
-              value={stats.soldTires}
-              color="orange-400"
-            />
-          </div>
-        </div>
-
         {/* Пользователи и контент */}
         <div>
           <h2 className="text-sm font-bold text-tg-hint uppercase tracking-wider mb-3 mt-6">
@@ -283,35 +211,25 @@ export default function StatsPage() {
               icon={Send}
               label="Отправлено постов"
               value={stats.totalPosts}
-              color="purple-500"
+              color="tg-accent"
             />
           </div>
         </div>
 
-        {/* Просмотры (заглушка) */}
-        <div className="tg-card p-5 opacity-50">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-tg-accent/10 flex items-center justify-center">
-              <Eye className="w-6 h-6 text-tg-accent" />
+        {/* Дополнительная информация */}
+        <div className="mt-8 p-4 bg-tg-secondary-bg/50 rounded-xl border border-tg-hint/10">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-tg-button/10 flex items-center justify-center flex-shrink-0">
+              <Eye className="w-5 h-5 text-tg-button" />
             </div>
             <div>
-              <div className="text-xl font-bold">{stats.viewsToday}</div>
-              <div className="text-sm text-tg-hint">Просмотров сегодня</div>
+              <h3 className="font-semibold mb-1">Подсказка</h3>
+              <p className="text-sm text-tg-hint leading-relaxed">
+                Статистика обновляется в реальном времени. Для детальной аналитики используйте раздел "Управление автомобилями".
+              </p>
             </div>
           </div>
-          <div className="text-xs text-tg-hint mt-3 text-center">
-            Скоро будет доступно
-          </div>
         </div>
-
-        {/* Обновить */}
-        <button
-          onClick={loadStats}
-          className="w-full tg-button-secondary tg-button flex items-center justify-center gap-2"
-          disabled={loading}
-        >
-          {loading ? 'Загрузка...' : 'Обновить статистику'}
-        </button>
       </div>
     </div>
   );
