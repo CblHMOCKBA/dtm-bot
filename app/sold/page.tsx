@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Grid2X2, Square } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Car as CarType } from '@/types';
@@ -14,6 +14,7 @@ export default function SoldPage() {
   const [cars, setCars] = useState<CarType[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
+  const [viewMode, setViewMode] = useState<'single' | 'double'>('single'); // Новое состояние
 
   useEffect(() => {
     const tg = getTelegramWebApp();
@@ -79,7 +80,17 @@ export default function SoldPage() {
             <p className="text-xs text-tg-hint uppercase tracking-wider">Проданные автомобили</p>
           </div>
 
-          <div className="w-11"></div>
+          <button
+            onClick={() => setViewMode(viewMode === 'single' ? 'double' : 'single')}
+            className="premium-back-button"
+            aria-label="Переключить вид"
+          >
+            {viewMode === 'single' ? (
+              <Grid2X2 className="w-5 h-5 text-tg-accent" />
+            ) : (
+              <Square className="w-5 h-5 text-tg-accent" />
+            )}
+          </button>
         </div>
       </div>
 
@@ -116,7 +127,7 @@ export default function SoldPage() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4">
+            <div className={`grid ${viewMode === 'single' ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
               {cars.map((car) => (
                 <CarCard key={car.id} car={car} />
               ))}

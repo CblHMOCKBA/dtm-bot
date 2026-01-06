@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowLeft, SlidersHorizontal, X } from 'lucide-react';
+import { ArrowLeft, SlidersHorizontal, X, Grid2X2, Square } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Car as CarType } from '@/types';
@@ -16,6 +16,7 @@ export default function CatalogPage() {
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'single' | 'double'>('single'); // Новое состояние для переключения вида
   
   // Фильтры
   const [filterBrand, setFilterBrand] = useState('');
@@ -141,13 +142,7 @@ export default function CatalogPage() {
             <p className="text-xs text-tg-hint uppercase tracking-wider">Каталог автомобилей</p>
           </div>
 
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="premium-back-button"
-            aria-label="Фильтры"
-          >
-            <SlidersHorizontal className="w-5 h-5 text-tg-accent" />
-          </button>
+          <div className="w-11"></div>
         </div>
 
         {/* Поиск */}
@@ -159,6 +154,29 @@ export default function CatalogPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="tg-input"
           />
+        </div>
+
+        {/* Кнопки фильтров и переключения вида */}
+        <div className="px-4 pb-3 flex gap-2">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex-1 tg-card py-3 px-4 flex items-center justify-center gap-2 hover:border-tg-accent transition-all active:scale-95"
+          >
+            <SlidersHorizontal className="w-4 h-4 text-tg-accent" />
+            <span className="text-sm font-semibold">Фильтры</span>
+          </button>
+
+          <button
+            onClick={() => setViewMode(viewMode === 'single' ? 'double' : 'single')}
+            className="tg-card py-3 px-4 flex items-center justify-center gap-2 hover:border-tg-accent transition-all active:scale-95"
+            aria-label="Переключить вид"
+          >
+            {viewMode === 'single' ? (
+              <Grid2X2 className="w-4 h-4 text-tg-accent" />
+            ) : (
+              <Square className="w-4 h-4 text-tg-accent" />
+            )}
+          </button>
         </div>
 
         {/* Счётчик */}
@@ -302,7 +320,7 @@ export default function CatalogPage() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4">
+            <div className={`grid ${viewMode === 'single' ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
               {filteredCars.map((car) => (
                 <CarCard 
                   key={car.id} 

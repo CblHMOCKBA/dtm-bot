@@ -236,7 +236,7 @@ export default function Home() {
                 <div className="price-display text-2xl text-gradient">
                   {formatPrice(currentCar.price)}
                 </div>
-                <div className="flex items-center gap-3 text-sm text-tg-hint font-semibold flex-wrap">
+                <div className="flex items-center gap-2 text-sm text-tg-hint font-semibold flex-wrap">
                   <span>{currentCar.year}</span>
                   <span className="text-tg-accent">•</span>
                   <span>{currentCar.mileage.toLocaleString()} км</span>
@@ -244,6 +244,18 @@ export default function Home() {
                     <>
                       <span className="text-tg-accent">•</span>
                       <span>{currentCar.specs.engine}</span>
+                    </>
+                  )}
+                  {currentCar.specs?.power && (
+                    <>
+                      <span className="text-tg-accent">•</span>
+                      <span className="text-green-400">{currentCar.specs.power} л.с.</span>
+                    </>
+                  )}
+                  {currentCar.specs?.transmission && (
+                    <>
+                      <span className="text-tg-accent">•</span>
+                      <span>{currentCar.specs.transmission}</span>
                     </>
                   )}
                 </div>
