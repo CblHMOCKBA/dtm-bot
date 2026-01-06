@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Car, Phone, TrendingUp, Award, CheckCircle, Settings, Heart, BarChart3, SlidersHorizontal } from 'lucide-react';
+import { Car, Phone, MessageCircle, SlidersHorizontal, Heart, BarChart3, Settings } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { isAdmin, getTelegramWebApp } from '@/lib/telegram';
 import { supabase } from '@/lib/supabase';
@@ -159,14 +159,28 @@ export default function Home() {
           backdropFilter: 'blur(10px)'
         }}
       >
-        {/* DTM лого */}
-        <div className="px-4 py-3 text-center">
-          <h1 className="text-2xl font-bold brand-name text-tg-accent tracking-[0.3em]">
-            DTM
-          </h1>
-          <p className="text-xs text-tg-hint mt-1">
-            {filteredCars.length} {statusFilter === 'all' ? 'предложений' : 'автомобилей'}
-          </p>
+        {/* DTM лого + Контакты */}
+        <div className="px-4 py-3 flex items-center justify-between">
+          <div className="flex-1"></div>
+          
+          <div className="text-center">
+            <h1 className="text-2xl font-bold brand-name text-tg-accent tracking-[0.3em]">
+              DTM
+            </h1>
+            <p className="text-xs text-tg-hint mt-1">
+              {filteredCars.length} {statusFilter === 'all' ? 'предложений' : 'автомобилей'}
+            </p>
+          </div>
+
+          <div className="flex-1 flex justify-end">
+            <button
+              onClick={() => router.push('/contact')}
+              className="premium-icon-button group"
+              aria-label="Контакты"
+            >
+              <MessageCircle className="w-5 h-5 text-tg-accent transition-transform group-hover:scale-110" />
+            </button>
+          </div>
         </div>
 
         {/* Вкладки статусов */}
@@ -176,13 +190,15 @@ export default function Home() {
               <button
                 key={status.value}
                 onClick={() => setStatusFilter(status.value)}
-                className={`px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
+                className={`relative px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-300 overflow-hidden group ${
                   statusFilter === status.value
-                    ? 'bg-tg-accent text-white shadow-lg'
-                    : 'bg-tg-secondary-bg text-tg-hint hover:bg-tg-secondary-bg/80'
+                    ? 'bg-tg-accent text-white shadow-lg shadow-tg-accent/50'
+                    : 'bg-tg-secondary-bg text-tg-hint hover:bg-tg-secondary-bg/80 hover:scale-[1.02]'
                 }`}
               >
-                {status.label}
+                {/* Shine effect */}
+                <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+                <span className="relative z-10">{status.label}</span>
               </button>
             ))}
           </div>
@@ -195,7 +211,7 @@ export default function Home() {
             placeholder="Марка, модель, год..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full tg-input"
+            className="w-full tg-input transition-all duration-300 focus:scale-[1.01]"
           />
         </div>
 
@@ -204,30 +220,53 @@ export default function Home() {
           <div className="flex gap-2 overflow-x-auto scrollbar-hide">
             <button
               onClick={() => setShowFilters(true)}
-              className="px-4 py-2 rounded-lg bg-tg-secondary-bg text-tg-hint hover:bg-tg-secondary-bg/80 text-sm font-semibold whitespace-nowrap flex items-center gap-2"
+              className="premium-filter-button group"
             >
-              <SlidersHorizontal className="w-4 h-4" />
-              Все фильтры
+              <SlidersHorizontal className="w-4 h-4 transition-transform group-hover:rotate-90 duration-300" />
+              <span>Все фильтры</span>
+              {/* Shine effect */}
+              <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
             </button>
             
             {filterBrand && (
-              <div className="px-4 py-2 rounded-lg bg-tg-accent/20 text-tg-accent text-sm font-semibold whitespace-nowrap flex items-center gap-2">
-                {filterBrand}
-                <button onClick={() => setFilterBrand('')} className="hover:opacity-70">×</button>
+              <div className="premium-active-filter group">
+                <span>{filterBrand}</span>
+                <button 
+                  onClick={() => setFilterBrand('')} 
+                  className="hover:scale-125 transition-transform duration-200"
+                >
+                  ×
+                </button>
+                {/* Glow effect */}
+                <div className="absolute inset-0 rounded-lg bg-tg-accent/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
               </div>
             )}
 
             {(filterYearFrom || filterYearTo) && (
-              <div className="px-4 py-2 rounded-lg bg-tg-accent/20 text-tg-accent text-sm font-semibold whitespace-nowrap flex items-center gap-2">
-                {filterYearFrom || '...'} - {filterYearTo || '...'}
-                <button onClick={() => { setFilterYearFrom(''); setFilterYearTo(''); }} className="hover:opacity-70">×</button>
+              <div className="premium-active-filter group">
+                <span>{filterYearFrom || '...'} - {filterYearTo || '...'}</span>
+                <button 
+                  onClick={() => { setFilterYearFrom(''); setFilterYearTo(''); }} 
+                  className="hover:scale-125 transition-transform duration-200"
+                >
+                  ×
+                </button>
+                <div className="absolute inset-0 rounded-lg bg-tg-accent/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
               </div>
             )}
 
             {(filterPriceFrom || filterPriceTo) && (
-              <div className="px-4 py-2 rounded-lg bg-tg-accent/20 text-tg-accent text-sm font-semibold whitespace-nowrap flex items-center gap-2">
-                {filterPriceFrom ? `${(parseInt(filterPriceFrom) / 1000000).toFixed(1)}М` : '...'} - {filterPriceTo ? `${(parseInt(filterPriceTo) / 1000000).toFixed(1)}М` : '...'}
-                <button onClick={() => { setFilterPriceFrom(''); setFilterPriceTo(''); }} className="hover:opacity-70">×</button>
+              <div className="premium-active-filter group">
+                <span>
+                  {filterPriceFrom ? `${(parseInt(filterPriceFrom) / 1000000).toFixed(1)}М` : '...'} - {filterPriceTo ? `${(parseInt(filterPriceTo) / 1000000).toFixed(1)}М` : '...'}
+                </span>
+                <button 
+                  onClick={() => { setFilterPriceFrom(''); setFilterPriceTo(''); }} 
+                  className="hover:scale-125 transition-transform duration-200"
+                >
+                  ×
+                </button>
+                <div className="absolute inset-0 rounded-lg bg-tg-accent/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
               </div>
             )}
           </div>
@@ -236,7 +275,8 @@ export default function Home() {
 
       {/* Панель фильтров */}
       {showFilters && (
-        <div className="fixed inset-0 z-30 flex items-end justify-center"
+        <div 
+          className="fixed inset-0 z-30 flex items-end justify-center animate-fade-in"
           style={{
             background: 'rgba(4, 3, 14, 0.85)',
             backdropFilter: 'blur(4px)'
@@ -244,7 +284,7 @@ export default function Home() {
           onClick={() => setShowFilters(false)}
         >
           <div 
-            className="w-full max-w-md rounded-t-2xl p-6 space-y-4"
+            className="w-full max-w-md rounded-t-2xl p-6 space-y-4 animate-slide-up"
             style={{
               background: 'linear-gradient(135deg, rgba(15, 14, 24, 0.98), rgba(26, 25, 37, 0.95))',
               backdropFilter: 'blur(20px)',
@@ -258,7 +298,7 @@ export default function Home() {
               <h2 className="text-xl font-bold brand-name">ФИЛЬТРЫ</h2>
               <button
                 onClick={() => setShowFilters(false)}
-                className="text-2xl w-10 h-10 flex items-center justify-center rounded-lg transition-colors hover:bg-tg-accent/20"
+                className="text-2xl w-10 h-10 flex items-center justify-center rounded-lg transition-all hover:bg-tg-accent/20 hover:rotate-90 duration-300"
               >
                 ×
               </button>
@@ -270,7 +310,7 @@ export default function Home() {
               <select
                 value={filterBrand}
                 onChange={(e) => setFilterBrand(e.target.value)}
-                className="tg-input"
+                className="tg-input transition-all duration-300 focus:scale-[1.01]"
               >
                 <option value="">Все марки</option>
                 {uniqueBrands.map(brand => (
@@ -288,7 +328,7 @@ export default function Home() {
                   placeholder="2010"
                   value={filterYearFrom}
                   onChange={(e) => setFilterYearFrom(e.target.value)}
-                  className="tg-input"
+                  className="tg-input transition-all duration-300 focus:scale-[1.01]"
                 />
               </div>
               <div>
@@ -298,7 +338,7 @@ export default function Home() {
                   placeholder="2024"
                   value={filterYearTo}
                   onChange={(e) => setFilterYearTo(e.target.value)}
-                  className="tg-input"
+                  className="tg-input transition-all duration-300 focus:scale-[1.01]"
                 />
               </div>
             </div>
@@ -312,7 +352,7 @@ export default function Home() {
                   placeholder="1000000"
                   value={filterPriceFrom}
                   onChange={(e) => setFilterPriceFrom(e.target.value)}
-                  className="tg-input"
+                  className="tg-input transition-all duration-300 focus:scale-[1.01]"
                 />
               </div>
               <div>
@@ -322,7 +362,7 @@ export default function Home() {
                   placeholder="10000000"
                   value={filterPriceTo}
                   onChange={(e) => setFilterPriceTo(e.target.value)}
-                  className="tg-input"
+                  className="tg-input transition-all duration-300 focus:scale-[1.01]"
                 />
               </div>
             </div>
@@ -331,7 +371,7 @@ export default function Home() {
             <div className="flex gap-3 pt-4">
               <button
                 onClick={resetFilters}
-                className="flex-1 py-3 px-4 rounded-lg border-2 border-tg-hint/30 font-semibold transition-all hover:border-tg-accent"
+                className="flex-1 py-3 px-4 rounded-lg border-2 border-tg-hint/30 font-semibold transition-all hover:border-tg-accent hover:scale-[1.02] duration-300"
               >
                 Сбросить
               </button>
@@ -356,8 +396,8 @@ export default function Home() {
               ))}
             </div>
           ) : filteredCars.length === 0 ? (
-            <div className="text-center py-12">
-              <Car className="w-16 h-16 mx-auto mb-4 text-tg-hint opacity-50" />
+            <div className="text-center py-12 animate-fade-in">
+              <Car className="w-16 h-16 mx-auto mb-4 text-tg-hint opacity-50 animate-pulse" />
               <p className="text-tg-hint text-lg mb-2">Автомобили не найдены</p>
               <button
                 onClick={resetFilters}
@@ -390,20 +430,22 @@ export default function Home() {
         <div className="flex items-center justify-around px-2 py-2 max-w-3xl mx-auto">
           {/* Каталог */}
           <button
-            className="flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all text-tg-accent"
+            className="premium-nav-button active"
           >
             <Car className="w-6 h-6" />
             <span className="text-xs font-semibold">Каталог</span>
+            {/* Active glow */}
+            <div className="absolute inset-0 rounded-lg bg-tg-accent/20 blur-md -z-10"></div>
           </button>
 
           {/* Избранное */}
           <button
             onClick={() => router.push('/favorites')}
-            className="flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all hover:bg-tg-secondary-bg/50 text-tg-hint relative"
+            className="premium-nav-button"
           >
             <Heart className="w-6 h-6" />
             {favoritesCount > 0 && (
-              <span className="absolute top-1 right-2 bg-tg-accent text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+              <span className="absolute top-1 right-2 bg-tg-accent text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold animate-pulse-scale">
                 {favoritesCount}
               </span>
             )}
@@ -413,11 +455,11 @@ export default function Home() {
           {/* Продано */}
           <button
             onClick={() => router.push('/sold')}
-            className="flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all hover:bg-tg-secondary-bg/50 text-tg-hint relative"
+            className="premium-nav-button"
           >
             <BarChart3 className="w-6 h-6" />
             {totalSold > 0 && (
-              <span className="absolute top-1 right-2 bg-amber-500 text-white text-xs px-1.5 rounded-full font-bold">
+              <span className="absolute top-1 right-2 bg-amber-500 text-white text-xs px-1.5 rounded-full font-bold animate-pulse-scale">
                 {totalSold}
               </span>
             )}
@@ -427,7 +469,7 @@ export default function Home() {
           {/* Контакты */}
           <button
             onClick={() => router.push('/contact')}
-            className="flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all hover:bg-tg-secondary-bg/50 text-tg-hint"
+            className="premium-nav-button"
           >
             <Phone className="w-6 h-6" />
             <span className="text-xs font-semibold">Контакты</span>
@@ -437,7 +479,7 @@ export default function Home() {
           {isAdminUser && (
             <button
               onClick={() => router.push('/admin')}
-              className="flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all hover:bg-tg-secondary-bg/50 text-tg-hint"
+              className="premium-nav-button"
             >
               <Settings className="w-6 h-6" />
               <span className="text-xs font-semibold">Админ</span>

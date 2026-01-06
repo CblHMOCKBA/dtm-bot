@@ -505,3 +505,218 @@ body > * {
   outline-offset: 2px;
   border-radius: 4px;
 }
+
+/* ========================================
+   PREMIUM ANIMATIONS & EFFECTS
+======================================== */
+
+/* Анимации появления */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-scale {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+.animate-pulse-scale {
+  animation: pulse-scale 2s ease-in-out infinite;
+}
+
+/* Premium Icon Button */
+.premium-icon-button {
+  @apply w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-300;
+  @apply hover:bg-tg-accent/20 hover:scale-110 active:scale-95;
+  position: relative;
+  overflow: hidden;
+}
+
+.premium-icon-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 0.5rem;
+  background: linear-gradient(135deg, rgba(204, 0, 58, 0.2), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.premium-icon-button:hover::before {
+  opacity: 1;
+}
+
+/* Premium Filter Button */
+.premium-filter-button {
+  @apply px-4 py-2 rounded-lg bg-tg-secondary-bg text-tg-hint text-sm font-semibold whitespace-nowrap;
+  @apply flex items-center gap-2 transition-all duration-300;
+  @apply hover:bg-tg-secondary-bg/80 hover:scale-[1.02] active:scale-95;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Premium Active Filter */
+.premium-active-filter {
+  @apply px-4 py-2 rounded-lg bg-tg-accent/20 text-tg-accent text-sm font-semibold whitespace-nowrap;
+  @apply flex items-center gap-2 transition-all duration-300;
+  @apply hover:scale-[1.05] active:scale-95;
+  position: relative;
+}
+
+/* Premium Navigation Button */
+.premium-nav-button {
+  @apply flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg;
+  @apply transition-all duration-300 text-tg-hint relative;
+  @apply hover:bg-tg-secondary-bg/50 hover:scale-105 active:scale-95;
+}
+
+.premium-nav-button.active {
+  @apply text-tg-accent;
+}
+
+.premium-nav-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 0.5rem;
+  background: linear-gradient(135deg, rgba(204, 0, 58, 0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.premium-nav-button:hover::before {
+  opacity: 1;
+}
+
+/* Shine Effects для кнопок */
+.premium-filter-button::after,
+.premium-active-filter::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.premium-filter-button:hover::after,
+.premium-active-filter:hover::after {
+  left: 100%;
+}
+
+/* Glow effects */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(204, 0, 58, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(204, 0, 58, 0.6);
+  }
+}
+
+.premium-nav-button.active {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* Enhanced tg-button */
+.tg-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.tg-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.tg-button:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* Enhanced tg-card hover */
+.tg-card {
+  @apply transition-all duration-300;
+}
+
+.tg-card:hover {
+  @apply shadow-2xl;
+  box-shadow: 0 8px 32px rgba(204, 0, 58, 0.2);
+}
+
+/* Input focus animations */
+.tg-input:focus {
+  box-shadow: 0 0 0 3px rgba(204, 0, 58, 0.2);
+  border-color: var(--tg-theme-accent);
+}
+
+/* Scrollbar hide */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Premium badge animations */
+@keyframes badge-pop {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.premium-nav-button span:first-of-type {
+  animation: badge-pop 0.3s ease-out;
+}
+
