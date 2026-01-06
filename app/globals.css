@@ -48,343 +48,27 @@ body {
   background-attachment: fixed;
 }
 
-/* Затемняющий слой - УМЕНЬШЕН для яркости */
-body::after {
+body::before {
   content: '';
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(4, 3, 14, 0.75) 0%,
-    rgba(4, 3, 14, 0.80) 50%,
-    rgba(4, 3, 14, 0.75) 100%
-  );
-  z-index: 0;
-  pointer-events: none;
-}
-
-/* Весь контент поверх */
-body > * {
-  position: relative;
-  z-index: 1;
-}
-
-/* ========================================
-   ПРЕМИУМ ТИПОГРАФИКА
-======================================== */
-
-.brand-name {
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 900;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  text-shadow: 0 0 20px rgba(204, 0, 58, 0.5);
-}
-
-.price-display {
-  font-family: 'Orbitron', monospace;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
-  font-weight: 700;
-}
-
-.text-gradient {
-  background: linear-gradient(135deg, #DC0000 0%, #FF3366 50%, #DC0000 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: gradient-shift 3s ease infinite;
-  background-size: 200% 200%;
-}
-
-@keyframes gradient-shift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-.text-accent {
-  color: var(--tg-theme-accent);
-  font-weight: 700;
-}
-
-/* ========================================
-   ПРЕМИУМ КНОПКИ
-======================================== */
-
-.tg-button {
-  position: relative;
-  background: linear-gradient(135deg, #DC0000 0%, #CC003A 50%, #990029 100%);
-  background-size: 200% 200%;
-  color: #FFFFFF;
-  border: 1px solid rgba(220, 0, 0, 0.5);
-  border-radius: 12px;
-  padding: 14px 28px;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-family: 'Rajdhani', sans-serif;
-  overflow: hidden;
-  box-shadow: 
-    0 4px 15px rgba(220, 0, 0, 0.4),
-    0 0 30px rgba(220, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-.tg-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.3),
-    transparent
-  );
-  transition: left 0.5s;
+  background: 
+    linear-gradient(180deg, 
+      rgba(4, 3, 14, 0.3) 0%,
+      rgba(4, 3, 14, 0.4) 50%,
+      rgba(4, 3, 14, 0.5) 100%
+    );
+  pointer-events: none;
+  z-index: 0;
 }
 
-.tg-button:hover::before {
-  left: 100%;
+/* Racing stripes */
+.racing-stripes {
+  position: relative;
 }
-
-.tg-button:hover {
-  background-position: 100% 50%;
-  transform: translateY(-2px);
-  box-shadow: 
-    0 6px 25px rgba(220, 0, 0, 0.6),
-    0 0 50px rgba(220, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 51, 102, 0.8);
-}
-
-.tg-button:active {
-  transform: translateY(0);
-}
-
-.pulse-button {
-  animation: pulse-glow 2s ease-in-out infinite;
-}
-
-@keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 
-      0 4px 15px rgba(220, 0, 0, 0.4),
-      0 0 30px rgba(220, 0, 0, 0.2);
-  }
-  50% {
-    box-shadow: 
-      0 4px 20px rgba(220, 0, 0, 0.6),
-      0 0 50px rgba(220, 0, 0, 0.4);
-  }
-}
-
-.tg-button-secondary {
-  background: rgba(15, 14, 24, 0.6);
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(204, 0, 58, 0.3);
-  color: var(--tg-theme-text-color);
-  box-shadow: 
-    0 4px 15px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.tg-button-secondary:hover {
-  background: rgba(204, 0, 58, 0.2);
-  border-color: rgba(204, 0, 58, 0.8);
-  box-shadow: 
-    0 6px 25px rgba(220, 0, 0, 0.4),
-    0 0 40px rgba(220, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-/* ========================================
-   ПРЕМИУМ КАРТОЧКИ
-======================================== */
-
-.tg-card {
-  background: linear-gradient(
-    135deg,
-    rgba(15, 14, 24, 0.8) 0%,
-    rgba(26, 25, 37, 0.6) 100%
-  );
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(204, 0, 58, 0.2);
-  border-radius: 16px;
-  padding: 0;
-  transition: all 0.3s ease;
-  overflow: hidden;
-  box-shadow: 
-    0 4px 20px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.tg-card:hover {
-  border-color: rgba(204, 0, 58, 0.6);
-  transform: translateY(-4px);
-  box-shadow: 
-    0 8px 30px rgba(220, 0, 0, 0.3),
-    0 0 40px rgba(220, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-.tg-card:active {
-  transform: translateY(-2px);
-}
-
-/* ========================================
-   ИНПУТЫ
-======================================== */
-
-.tg-input {
-  background: rgba(15, 14, 24, 0.8);
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(204, 0, 58, 0.2);
-  border-radius: 12px;
-  color: var(--tg-theme-text-color);
-  padding: 12px 16px;
-  font-size: 15px;
-  font-family: 'Rajdhani', sans-serif;
-  transition: all 0.3s ease;
-  width: 100%;
-  box-shadow: 
-    inset 0 2px 4px rgba(0, 0, 0, 0.2),
-    0 0 20px rgba(0, 0, 0, 0.1);
-}
-
-.tg-input:focus {
-  border-color: rgba(204, 0, 58, 0.8);
-  outline: none;
-  box-shadow: 
-    inset 0 2px 4px rgba(0, 0, 0, 0.2),
-    0 0 30px rgba(220, 0, 0, 0.3);
-}
-
-.tg-input::placeholder {
-  color: var(--tg-theme-hint-color);
-}
-
-/* ========================================
-   БЕЙДЖИ
-======================================== */
-
-.badge {
-  display: inline-block;
-  padding: 6px 14px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  border-radius: 6px;
-  font-family: 'Rajdhani', sans-serif;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-}
-
-.badge-new {
-  background: linear-gradient(135deg, #DC0000, #FF3366);
-  color: white;
-  animation: badge-pulse 2s ease-in-out infinite;
-}
-
-@keyframes badge-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-}
-
-.badge-available {
-  background: rgba(16, 185, 129, 0.2);
-  border: 2px solid #10B981;
-  color: #10B981;
-}
-
-.badge-order {
-  background: rgba(245, 158, 11, 0.2);
-  border: 2px solid #F59E0B;
-  color: #F59E0B;
-}
-
-.badge-sold {
-  background: rgba(107, 114, 128, 0.2);
-  border: 2px solid var(--tg-theme-hint-color);
-  color: var(--tg-theme-hint-color);
-}
-
-/* ========================================
-   BACK BUTTON
-======================================== */
-
-.premium-back-button {
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(
-    135deg,
-    rgba(15, 14, 24, 0.8),
-    rgba(26, 25, 37, 0.6)
-  );
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(204, 0, 58, 0.3);
-  border-radius: 12px;
-  color: var(--tg-theme-text-color);
-  transition: all 0.3s ease;
-  cursor: pointer;
-  box-shadow: 
-    0 4px 15px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.premium-back-button:hover {
-  border-color: rgba(204, 0, 58, 0.8);
-  color: var(--tg-theme-accent);
-  transform: translateX(-4px) scale(1.05);
-  box-shadow: 
-    0 6px 20px rgba(220, 0, 0, 0.4),
-    0 0 30px rgba(220, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-.premium-back-button:active {
-  transform: translateX(-2px) scale(1);
-}
-
-/* ========================================
-   SCROLLBAR
-======================================== */
-
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(15, 14, 24, 0.5);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #DC0000, #CC003A);
-  border-radius: 4px;
-  box-shadow: 0 0 10px rgba(220, 0, 0, 0.5);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #FF3366, #DC0000);
-  box-shadow: 0 0 15px rgba(220, 0, 0, 0.8);
-}
-
-/* ========================================
-   RACING STRIPES
-======================================== */
 
 .racing-stripes::before {
   content: '';
@@ -392,271 +76,82 @@ body > * {
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    #DC0000 20%,
-    #FF3366 50%,
-    #DC0000 80%,
-    transparent
-  );
-  z-index: 100;
-  animation: racing-line 3s linear infinite;
-  background-size: 200% 100%;
-}
-
-@keyframes racing-line {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  bottom: 0;
+  background: 
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 50px,
+      rgba(204, 0, 58, 0.02) 50px,
+      rgba(204, 0, 58, 0.02) 52px
+    );
+  pointer-events: none;
+  z-index: -1;
 }
 
 /* ========================================
-   АНИМАЦИИ
+   TYPOGRAPHY
 ======================================== */
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.fade-in {
-  animation: fadeIn 0.6s ease;
-}
-
-.skeleton {
-  background: linear-gradient(
-    90deg,
-    rgba(26, 25, 37, 0.4) 0%,
-    rgba(26, 25, 37, 0.6) 50%,
-    rgba(26, 25, 37, 0.4) 100%
-  );
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s ease-in-out infinite;
-  border-radius: 12px;
-}
-
-@keyframes skeleton-loading {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+.brand-name {
+  font-family: 'Orbitron', monospace;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
 }
 
 /* ========================================
-   CAR IMAGE WRAPPER
+   TELEGRAM WEBAPP COMPONENTS
 ======================================== */
 
-.car-image-wrapper {
-  position: relative;
-  overflow: hidden;
-  border-radius: 12px 12px 0 0;
+.tg-bg {
+  background-color: var(--tg-theme-bg-color);
 }
 
-.car-image-wrapper::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.1),
-    transparent
-  );
-  transform: skewX(-25deg);
-  transition: left 0.7s;
+.tg-text {
+  color: var(--tg-theme-text-color);
 }
 
-.tg-card:hover .car-image-wrapper::after {
-  left: 150%;
+.tg-hint {
+  color: var(--tg-theme-hint-color);
 }
 
-/* ========================================
-   UTILITIES
-======================================== */
-
-.text-gradient-dtm {
-  background: linear-gradient(135deg, #CC003A 0%, #E60044 50%, #CC003A 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.tg-link {
+  color: var(--tg-theme-link-color);
 }
 
-/* Touch optimizations */
-@media (hover: none) {
-  .tg-button:hover {
-    transform: none;
-  }
-  .tg-card:hover {
-    transform: none;
-  }
+.tg-accent {
+  color: var(--tg-theme-accent);
 }
 
-/* Accessibility */
-*:focus-visible {
-  outline: 2px solid var(--tg-theme-accent);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-/* ========================================
-   PREMIUM ANIMATIONS & EFFECTS
-======================================== */
-
-/* Анимации появления */
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slide-up {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes pulse-scale {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-}
-
-.animate-fade-in {
-  animation: fade-in 0.3s ease-out;
-}
-
-.animate-slide-up {
-  animation: slide-up 0.3s ease-out;
-}
-
-.animate-pulse-scale {
-  animation: pulse-scale 2s ease-in-out infinite;
-}
-
-/* Premium Icon Button */
-.premium-icon-button {
-  @apply w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-300;
-  @apply hover:bg-tg-accent/20 hover:scale-110 active:scale-95;
-  position: relative;
-  overflow: hidden;
-}
-
-.premium-icon-button::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 0.5rem;
-  background: linear-gradient(135deg, rgba(204, 0, 58, 0.2), transparent);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.premium-icon-button:hover::before {
-  opacity: 1;
-}
-
-/* Premium Filter Button */
-.premium-filter-button {
-  @apply px-4 py-2 rounded-lg bg-tg-secondary-bg text-tg-hint text-sm font-semibold whitespace-nowrap;
-  @apply flex items-center gap-2 transition-all duration-300;
-  @apply hover:bg-tg-secondary-bg/80 hover:scale-[1.02] active:scale-95;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Premium Active Filter */
-.premium-active-filter {
-  @apply px-4 py-2 rounded-lg bg-tg-accent/20 text-tg-accent text-sm font-semibold whitespace-nowrap;
-  @apply flex items-center gap-2 transition-all duration-300;
-  @apply hover:scale-[1.05] active:scale-95;
-  position: relative;
-}
-
-/* Premium Navigation Button */
-.premium-nav-button {
-  @apply flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg;
-  @apply transition-all duration-300 text-tg-hint relative;
-  @apply hover:bg-tg-secondary-bg/50 hover:scale-105 active:scale-95;
-}
-
-.premium-nav-button.active {
-  @apply text-tg-accent;
-}
-
-.premium-nav-button::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 0.5rem;
-  background: linear-gradient(135deg, rgba(204, 0, 58, 0.1), transparent);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.premium-nav-button:hover::before {
-  opacity: 1;
-}
-
-/* Shine Effects для кнопок */
-.premium-filter-button::after,
-.premium-active-filter::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.1),
-    transparent
-  );
-  transition: left 0.5s;
-}
-
-.premium-filter-button:hover::after,
-.premium-active-filter:hover::after {
-  left: 100%;
-}
-
-/* Glow effects */
-@keyframes glow-pulse {
-  0%, 100% {
-    box-shadow: 0 0 10px rgba(204, 0, 58, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(204, 0, 58, 0.6);
-  }
-}
-
-.premium-nav-button.active {
-  animation: glow-pulse 2s ease-in-out infinite;
-}
-
-/* Enhanced tg-button */
 .tg-button {
+  background: linear-gradient(135deg, var(--tg-theme-accent) 0%, var(--tg-theme-accent-dark) 100%);
+  color: var(--tg-theme-button-text-color);
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 700;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 4px 12px rgba(204, 0, 58, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   position: relative;
   overflow: hidden;
+}
+
+.tg-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 6px 20px rgba(204, 0, 58, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.tg-button:active {
+  transform: translateY(0);
 }
 
 .tg-button::before {
@@ -677,23 +172,371 @@ body > * {
   height: 300px;
 }
 
-/* Enhanced tg-card hover */
 .tg-card {
-  @apply transition-all duration-300;
+  background: linear-gradient(135deg, rgba(15, 14, 24, 0.95), rgba(26, 25, 37, 0.85));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(204, 0, 58, 0.2);
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .tg-card:hover {
-  @apply shadow-2xl;
-  box-shadow: 0 8px 32px rgba(204, 0, 58, 0.2);
+  transform: translateY(-4px);
+  border-color: rgba(204, 0, 58, 0.4);
+  box-shadow: 
+    0 8px 32px rgba(204, 0, 58, 0.2),
+    0 4px 20px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-/* Input focus animations */
+.tg-secondary-bg {
+  background-color: var(--tg-theme-secondary-bg-color);
+}
+
+.tg-input {
+  background: rgba(15, 14, 24, 0.8);
+  border: 2px solid rgba(204, 0, 58, 0.2);
+  color: var(--tg-theme-text-color);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 16px;
+  transition: all 0.3s;
+  outline: none;
+}
+
 .tg-input:focus {
-  box-shadow: 0 0 0 3px rgba(204, 0, 58, 0.2);
   border-color: var(--tg-theme-accent);
+  background: rgba(15, 14, 24, 0.95);
+  box-shadow: 0 0 0 3px rgba(204, 0, 58, 0.2);
 }
 
-/* Scrollbar hide */
+.tg-input::placeholder {
+  color: var(--tg-theme-hint-color);
+  opacity: 0.6;
+}
+
+/* ========================================
+   PREMIUM BUTTONS
+======================================== */
+
+.premium-back-button {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(204, 0, 58, 0.1);
+  border: 1px solid rgba(204, 0, 58, 0.3);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.premium-back-button:hover {
+  background: rgba(204, 0, 58, 0.2);
+  border-color: rgba(204, 0, 58, 0.5);
+  transform: translateX(-2px);
+  box-shadow: 0 4px 12px rgba(204, 0, 58, 0.3);
+}
+
+.premium-back-button:active {
+  transform: translateX(-4px) scale(0.95);
+}
+
+/* ========================================
+   PRICE DISPLAY
+======================================== */
+
+.price-display {
+  font-family: 'Orbitron', monospace;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #CC003A 0%, #E60044 50%, #CC003A 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 3s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% center;
+  }
+  50% {
+    background-position: 100% center;
+  }
+}
+
+/* ========================================
+   CAR IMAGE EFFECTS
+======================================== */
+
+.car-image-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.car-image-wrapper::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -150%;
+  width: 100%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transform: skewX(-25deg);
+  transition: left 0.7s;
+}
+
+.tg-card:hover .car-image-wrapper::after {
+  left: 150%;
+}
+
+/* ========================================
+   PREMIUM ANIMATIONS & EFFECTS
+======================================== */
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-scale {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(204, 0, 58, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(204, 0, 58, 0.6);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+.animate-pulse-scale {
+  animation: pulse-scale 2s ease-in-out infinite;
+}
+
+/* ========================================
+   PREMIUM ICON BUTTON
+======================================== */
+
+.premium-icon-button {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.premium-icon-button:hover {
+  background: rgba(204, 0, 58, 0.2);
+  transform: scale(1.1);
+}
+
+.premium-icon-button:active {
+  transform: scale(0.95);
+}
+
+.premium-icon-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(204, 0, 58, 0.2), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.premium-icon-button:hover::before {
+  opacity: 1;
+}
+
+/* ========================================
+   PREMIUM FILTER BUTTON
+======================================== */
+
+.premium-filter-button {
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: rgba(15, 14, 24, 0.8);
+  color: #9CA3AF;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.premium-filter-button:hover {
+  background: rgba(15, 14, 24, 0.95);
+  transform: scale(1.02);
+}
+
+.premium-filter-button:active {
+  transform: scale(0.95);
+}
+
+.premium-filter-button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.premium-filter-button:hover::after {
+  left: 100%;
+}
+
+/* ========================================
+   PREMIUM ACTIVE FILTER
+======================================== */
+
+.premium-active-filter {
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: rgba(204, 0, 58, 0.2);
+  color: #CC003A;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+  position: relative;
+  cursor: pointer;
+}
+
+.premium-active-filter:hover {
+  transform: scale(1.05);
+}
+
+.premium-active-filter:active {
+  transform: scale(0.95);
+}
+
+.premium-active-filter::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.premium-active-filter:hover::after {
+  left: 100%;
+}
+
+/* ========================================
+   PREMIUM NAV BUTTON
+======================================== */
+
+.premium-nav-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  transition: all 0.3s;
+  color: #9CA3AF;
+  position: relative;
+  cursor: pointer;
+}
+
+.premium-nav-button:hover {
+  background: rgba(15, 14, 24, 0.5);
+  transform: scale(1.05);
+}
+
+.premium-nav-button:active {
+  transform: scale(0.95);
+}
+
+.premium-nav-button.active {
+  color: #CC003A;
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.premium-nav-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(204, 0, 58, 0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.premium-nav-button:hover::before {
+  opacity: 1;
+}
+
+/* ========================================
+   UTILITIES
+======================================== */
+
+.text-gradient-dtm {
+  background: linear-gradient(135deg, #CC003A 0%, #E60044 50%, #CC003A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -703,20 +546,25 @@ body > * {
   display: none;
 }
 
-/* Premium badge animations */
-@keyframes badge-pop {
-  0% {
-    transform: scale(0);
+/* ========================================
+   TOUCH OPTIMIZATIONS
+======================================== */
+
+@media (hover: none) {
+  .tg-button:hover {
+    transform: none;
   }
-  50% {
-    transform: scale(1.2);
-  }
-  100% {
-    transform: scale(1);
+  .tg-card:hover {
+    transform: none;
   }
 }
 
-.premium-nav-button span:first-of-type {
-  animation: badge-pop 0.3s ease-out;
-}
+/* ========================================
+   ACCESSIBILITY
+======================================== */
 
+*:focus-visible {
+  outline: 2px solid var(--tg-theme-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
