@@ -1,77 +1,70 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Car, Phone, TrendingUp, Award, CheckCircle, ChevronLeft, ChevronRight, MessageCircle, Heart, Settings } from 'lucide-react';
+import { Car, Phone, TrendingUp, Award, CheckCircle, Settings, Heart, BarChart3, SlidersHorizontal } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { isAdmin, getTelegramWebApp } from '@/lib/telegram';
 import { supabase } from '@/lib/supabase';
-import { Car as CarType } from '@/types';
+import { Car as CarType, CarStatus } from '@/types';
+import CarCard from '@/components/CarCard';
+import CarCardSkeleton from '@/components/CarCardSkeleton';
 import { useFavorites } from '@/lib/useFavorites';
-
-// Улучшенная бегущая строка - медленная и без пустоты
-function ImprovedMarquee() {
-  const text = '⚡ Новые поступления каждую неделю • 🔥 Гарантия качества • 💎 Премиум сервис • ✨ Trade-in с выгодой • 🚀 Быстрое оформление • 🎯 Проверка по базам';
-  
-  return (
-    <div className="relative overflow-hidden py-3 px-4 tg-card">
-      <div className="flex gap-12">
-        <div className="whitespace-nowrap animate-marquee-slow text-sm font-semibold uppercase tracking-wider text-tg-hint">
-          {text} • {text}
-        </div>
-        <div className="whitespace-nowrap animate-marquee-slow text-sm font-semibold uppercase tracking-wider text-tg-hint" aria-hidden="true">
-          {text} • {text}
-        </div>
-      </div>
-      <style jsx>{`
-        @keyframes marquee-slow {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        .animate-marquee-slow {
-          display: inline-block;
-          animation: marquee-slow 45s linear infinite;
-        }
-      `}</style>
-    </div>
-  );
-}
 
 export default function Home() {
   const router = useRouter();
   const { count: favoritesCount } = useFavorites();
   const [isAdminUser, setIsAdminUser] = useState(false);
-  const [topCars, setTopCars] = useState<CarType[]>([]);
-  const [currentCarIndex, setCurrentCarIndex] = useState(0);
+  const [cars, setCars] = useState<CarType[]>([]);
+  const [filteredCars, setFilteredCars] = useState<CarType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<'all' | CarStatus>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [stats, setStats] = useState({ total: 0, sold: 0, manualSold: 0 });
+  const [showFilters, setShowFilters] = useState(false);
+  
+  // Фильтры
+  const [filterBrand, setFilterBrand] = useState('');
+  const [filterYearFrom, setFilterYearFrom] = useState('');
+  const [filterYearTo, setFilterYearTo] = useState('');
+  const [filterPriceFrom, setFilterPriceFrom] = useState('');
+  const [filterPriceTo, setFilterPriceTo] = useState('');
 
   useEffect(() => {
     const tg = getTelegramWebApp();
     if (tg) {
       tg.ready();
+      tg.expand();
     }
 
     setIsAdminUser(isAdmin());
 
     Promise.all([
-      loadTopCars(),
+      loadCars(),
       loadStats()
     ]);
   }, []);
 
-  const loadTopCars = async () => {
+  useEffect(() => {
+    applyFilters();
+  }, [cars, statusFilter, searchQuery, filterBrand, filterYearFrom, filterYearTo, filterPriceFrom, filterPriceTo]);
+
+  const loadCars = async () => {
     try {
-      const { data } = await supabase
+      setLoading(true);
+
+      const { data, error } = await supabase
         .from('cars')
         .select('*')
         .neq('status', 'sold')
-        .order('created_at', { ascending: false })
-        .limit(3);
+        .order('created_at', { ascending: false });
 
-      if (data && data.length > 0) {
-        setTopCars(data);
-      }
+      if (error) throw error;
+
+      setCars(data || []);
     } catch (error) {
       console.error('Error loading cars:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -93,259 +86,363 @@ export default function Home() {
     }
   };
 
-  const currentCar = topCars[currentCarIndex];
-  const totalSold = stats.sold + stats.manualSold;
+  const applyFilters = () => {
+    let filtered = [...cars];
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('ru-RU').format(price) + ' ₽';
+    // Фильтр по статусу
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(car => car.status === statusFilter);
+    }
+
+    // Поиск
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(car => 
+        car.brand.toLowerCase().includes(query) ||
+        car.model.toLowerCase().includes(query)
+      );
+    }
+
+    // Фильтр по марке
+    if (filterBrand) {
+      filtered = filtered.filter(car => 
+        car.brand.toLowerCase() === filterBrand.toLowerCase()
+      );
+    }
+
+    // Фильтр по году
+    if (filterYearFrom) {
+      filtered = filtered.filter(car => car.year >= parseInt(filterYearFrom));
+    }
+    if (filterYearTo) {
+      filtered = filtered.filter(car => car.year <= parseInt(filterYearTo));
+    }
+
+    // Фильтр по цене
+    if (filterPriceFrom) {
+      filtered = filtered.filter(car => car.price >= parseInt(filterPriceFrom));
+    }
+    if (filterPriceTo) {
+      filtered = filtered.filter(car => car.price <= parseInt(filterPriceTo));
+    }
+
+    setFilteredCars(filtered);
   };
 
+  const resetFilters = () => {
+    setFilterBrand('');
+    setFilterYearFrom('');
+    setFilterYearTo('');
+    setFilterPriceFrom('');
+    setFilterPriceTo('');
+    setStatusFilter('all');
+    setSearchQuery('');
+  };
+
+  const uniqueBrands = Array.from(new Set(cars.map(car => car.brand))).sort();
+
+  const statusButtons: { value: 'all' | CarStatus; label: string }[] = [
+    { value: 'all', label: 'Все' },
+    { value: 'available', label: 'В наличии' },
+    { value: 'order', label: 'Под заказ' },
+    { value: 'inTransit', label: 'В пути' }
+  ];
+
+  const totalSold = stats.sold + stats.manualSold;
+
   return (
-    <div className="min-h-screen p-4 relative racing-stripes">
-      {/* Контакты */}
-      <div className="absolute top-4 right-4 z-20">
-        <button
-          onClick={() => router.push('/contact')}
-          className="premium-back-button"
-          aria-label="Обратная связь"
-        >
-          <Phone className="w-5 h-5 text-tg-accent" />
-        </button>
-      </div>
-
-      <div className="max-w-md mx-auto space-y-6">
-        {/* DTM Логотип */}
-        <div className="flex justify-center pt-2 fade-in">
-          <div className="text-center space-y-3">
-            <h1 className="text-5xl font-bold brand-name text-tg-accent tracking-[0.3em]">
-              DTM
-            </h1>
-            <div className="text-xs font-semibold tracking-[0.3em] text-tg-white uppercase">
-              dtm.moscow
-            </div>
-          </div>
-        </div>
-
-        {/* Подзаголовок */}
-        <div className="text-center fade-in">
-          <p className="text-sm text-tg-hint font-medium tracking-wider uppercase">
-            Премиум автомобили
+    <div className="min-h-screen pb-20 racing-stripes">
+      {/* Шапка */}
+      <div className="sticky top-0 z-20 border-b border-tg-hint/10"
+        style={{
+          background: 'linear-gradient(135deg, rgba(15, 14, 24, 0.95), rgba(26, 25, 37, 0.85))',
+          backdropFilter: 'blur(10px)'
+        }}
+      >
+        {/* DTM лого */}
+        <div className="px-4 py-3 text-center">
+          <h1 className="text-2xl font-bold brand-name text-tg-accent tracking-[0.3em]">
+            DTM
+          </h1>
+          <p className="text-xs text-tg-hint mt-1">
+            {filteredCars.length} {statusFilter === 'all' ? 'предложений' : 'автомобилей'}
           </p>
         </div>
 
-        {/* Бегущая строка - ИСПРАВЛЕНО */}
-        <ImprovedMarquee />
-
-        {/* Статистика */}
-        <div className="grid grid-cols-3 gap-3 fade-in">
-          <button
-            onClick={() => router.push('/catalog')}
-            className="tg-card p-4 text-center hover:border-tg-accent transition-all active:scale-95 cursor-pointer"
-          >
-            <div className="text-3xl font-bold text-gradient h-9 flex items-center justify-center">
-              {stats.total - stats.sold}
-            </div>
-            <div className="text-[10px] text-tg-hint mt-2 font-bold uppercase tracking-wide whitespace-nowrap">В наличии</div>
-          </button>
-          <button
-            onClick={() => router.push('/sold')}
-            className="tg-card p-4 text-center hover:border-tg-accent transition-all active:scale-95 cursor-pointer"
-          >
-            <div className="text-3xl font-bold text-gradient h-9 flex items-center justify-center">
-              {totalSold}
-            </div>
-            <div className="text-[10px] text-tg-hint mt-2 font-bold uppercase tracking-wide whitespace-nowrap">Продано</div>
-          </button>
-          <button
-            onClick={() => router.push('/contact')}
-            className="tg-card p-4 text-center hover:border-tg-accent transition-all active:scale-95 cursor-pointer"
-          >
-            <div className="text-3xl font-bold text-gradient h-9 flex items-center justify-center">
-              <Award className="w-8 h-8" />
-            </div>
-            <div className="text-[10px] text-tg-hint mt-2 font-bold uppercase tracking-wide whitespace-nowrap">Премиум</div>
-          </button>
+        {/* Вкладки статусов */}
+        <div className="px-4 pb-3">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+            {statusButtons.map((status) => (
+              <button
+                key={status.value}
+                onClick={() => setStatusFilter(status.value)}
+                className={`px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
+                  statusFilter === status.value
+                    ? 'bg-tg-accent text-white shadow-lg'
+                    : 'bg-tg-secondary-bg text-tg-hint hover:bg-tg-secondary-bg/80'
+                }`}
+              >
+                {status.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Карусель */}
-        {topCars.length > 0 && currentCar && (
-          <div className="relative fade-in">
-            <div className="text-sm font-bold text-tg-hint mb-3 text-center flex items-center justify-center gap-2 uppercase tracking-wider">
-              <TrendingUp className="w-5 h-5 text-tg-accent" />
-              <span>Топ предложения</span>
-            </div>
-            <div 
-              onClick={() => router.push(`/car/${currentCar.id}`)}
-              className="tg-card cursor-pointer transition-all active:scale-[0.98] relative group"
+        {/* Поиск */}
+        <div className="px-4 pb-3">
+          <input
+            type="text"
+            placeholder="Марка, модель, год..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full tg-input"
+          />
+        </div>
+
+        {/* Горизонтальные фильтры */}
+        <div className="px-4 pb-3">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+            <button
+              onClick={() => setShowFilters(true)}
+              className="px-4 py-2 rounded-lg bg-tg-secondary-bg text-tg-hint hover:bg-tg-secondary-bg/80 text-sm font-semibold whitespace-nowrap flex items-center gap-2"
             >
-              <div className="aspect-[16/9] bg-tg-bg relative car-image-wrapper">
-                {currentCar.photos && currentCar.photos.length > 0 ? (
-                  <img
-                    src={currentCar.photos[0]}
-                    alt={`${currentCar.brand} ${currentCar.model}`}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-tg-secondary-bg">
-                    <Car className="w-20 h-20 text-tg-accent opacity-50" />
-                  </div>
-                )}
-                
-                {topCars.length > 1 && (
-                  <>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setCurrentCarIndex((prev) => (prev - 1 + topCars.length) % topCars.length);
-                      }}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/70 backdrop-blur-md flex items-center justify-center transition-all hover:bg-tg-accent hover:scale-110 border border-white/20"
-                    >
-                      <ChevronLeft className="w-6 h-6 text-white" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setCurrentCarIndex((prev) => (prev + 1) % topCars.length);
-                      }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/70 backdrop-blur-md flex items-center justify-center transition-all hover:bg-tg-accent hover:scale-110 border border-white/20"
-                    >
-                      <ChevronRight className="w-6 h-6 text-white" />
-                    </button>
-
-                    <div className="absolute bottom-4 left-0 right-0 flex gap-2 justify-center">
-                      {topCars.map((_, index) => (
-                        <div
-                          key={index}
-                          className={`h-1.5 w-10 rounded-full transition-all duration-300 ${
-                            index === currentCarIndex 
-                              ? 'bg-tg-accent shadow-[0_0_10px_rgba(220,0,0,0.8)] scale-110' 
-                              : 'bg-white/40'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </>
-                )}
+              <SlidersHorizontal className="w-4 h-4" />
+              Все фильтры
+            </button>
+            
+            {filterBrand && (
+              <div className="px-4 py-2 rounded-lg bg-tg-accent/20 text-tg-accent text-sm font-semibold whitespace-nowrap flex items-center gap-2">
+                {filterBrand}
+                <button onClick={() => setFilterBrand('')} className="hover:opacity-70">×</button>
               </div>
+            )}
 
-              <div className="p-4 space-y-3">
-                <h3 className="font-bold text-xl truncate tracking-wide">
-                  {currentCar.brand} {currentCar.model}
-                </h3>
-                <div className="price-display text-2xl text-gradient">
-                  {formatPrice(currentCar.price)}
-                </div>
-                <div className="flex items-center gap-2 text-sm text-tg-hint font-semibold flex-wrap">
-                  <span>{currentCar.year}</span>
-                  <span className="text-tg-accent">•</span>
-                  <span>{currentCar.mileage.toLocaleString()} км</span>
-                  {currentCar.specs?.engine && (
-                    <>
-                      <span className="text-tg-accent">•</span>
-                      <span>{currentCar.specs.engine}</span>
-                    </>
-                  )}
-                  {currentCar.specs?.power && (
-                    <>
-                      <span className="text-tg-accent">•</span>
-                      <span className="text-green-400">{currentCar.specs.power} л.с.</span>
-                    </>
-                  )}
-                  {currentCar.specs?.transmission && (
-                    <>
-                      <span className="text-tg-accent">•</span>
-                      <span>{currentCar.specs.transmission}</span>
-                    </>
-                  )}
-                </div>
+            {(filterYearFrom || filterYearTo) && (
+              <div className="px-4 py-2 rounded-lg bg-tg-accent/20 text-tg-accent text-sm font-semibold whitespace-nowrap flex items-center gap-2">
+                {filterYearFrom || '...'} - {filterYearTo || '...'}
+                <button onClick={() => { setFilterYearFrom(''); setFilterYearTo(''); }} className="hover:opacity-70">×</button>
               </div>
+            )}
+
+            {(filterPriceFrom || filterPriceTo) && (
+              <div className="px-4 py-2 rounded-lg bg-tg-accent/20 text-tg-accent text-sm font-semibold whitespace-nowrap flex items-center gap-2">
+                {filterPriceFrom ? `${(parseInt(filterPriceFrom) / 1000000).toFixed(1)}М` : '...'} - {filterPriceTo ? `${(parseInt(filterPriceTo) / 1000000).toFixed(1)}М` : '...'}
+                <button onClick={() => { setFilterPriceFrom(''); setFilterPriceTo(''); }} className="hover:opacity-70">×</button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Панель фильтров */}
+      {showFilters && (
+        <div className="fixed inset-0 z-30 flex items-end justify-center"
+          style={{
+            background: 'rgba(4, 3, 14, 0.85)',
+            backdropFilter: 'blur(4px)'
+          }}
+          onClick={() => setShowFilters(false)}
+        >
+          <div 
+            className="w-full max-w-md rounded-t-2xl p-6 space-y-4"
+            style={{
+              background: 'linear-gradient(135deg, rgba(15, 14, 24, 0.98), rgba(26, 25, 37, 0.95))',
+              backdropFilter: 'blur(20px)',
+              borderTop: '2px solid rgba(204, 0, 58, 0.3)',
+              maxHeight: '80vh',
+              overflowY: 'auto'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold brand-name">ФИЛЬТРЫ</h2>
+              <button
+                onClick={() => setShowFilters(false)}
+                className="text-2xl w-10 h-10 flex items-center justify-center rounded-lg transition-colors hover:bg-tg-accent/20"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Марка */}
+            <div>
+              <label className="block text-sm font-bold text-tg-hint mb-2 uppercase tracking-wider">Марка</label>
+              <select
+                value={filterBrand}
+                onChange={(e) => setFilterBrand(e.target.value)}
+                className="tg-input"
+              >
+                <option value="">Все марки</option>
+                {uniqueBrands.map(brand => (
+                  <option key={brand} value={brand}>{brand}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Год */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-bold text-tg-hint mb-2 uppercase tracking-wider">Год от</label>
+                <input
+                  type="number"
+                  placeholder="2010"
+                  value={filterYearFrom}
+                  onChange={(e) => setFilterYearFrom(e.target.value)}
+                  className="tg-input"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-tg-hint mb-2 uppercase tracking-wider">Год до</label>
+                <input
+                  type="number"
+                  placeholder="2024"
+                  value={filterYearTo}
+                  onChange={(e) => setFilterYearTo(e.target.value)}
+                  className="tg-input"
+                />
+              </div>
+            </div>
+
+            {/* Цена */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-bold text-tg-hint mb-2 uppercase tracking-wider">Цена от</label>
+                <input
+                  type="number"
+                  placeholder="1000000"
+                  value={filterPriceFrom}
+                  onChange={(e) => setFilterPriceFrom(e.target.value)}
+                  className="tg-input"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-tg-hint mb-2 uppercase tracking-wider">Цена до</label>
+                <input
+                  type="number"
+                  placeholder="10000000"
+                  value={filterPriceTo}
+                  onChange={(e) => setFilterPriceTo(e.target.value)}
+                  className="tg-input"
+                />
+              </div>
+            </div>
+
+            {/* Кнопки */}
+            <div className="flex gap-3 pt-4">
+              <button
+                onClick={resetFilters}
+                className="flex-1 py-3 px-4 rounded-lg border-2 border-tg-hint/30 font-semibold transition-all hover:border-tg-accent"
+              >
+                Сбросить
+              </button>
+              <button
+                onClick={() => setShowFilters(false)}
+                className="flex-1 tg-button"
+              >
+                Применить
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Навигация */}
-        <div className="space-y-3 fade-in">
+      {/* Каталог */}
+      <div className="px-4 pt-4">
+        <div className="max-w-3xl mx-auto">
+          {loading ? (
+            <div className="grid grid-cols-1 gap-4">
+              {[1, 2, 3, 4].map((i) => (
+                <CarCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : filteredCars.length === 0 ? (
+            <div className="text-center py-12">
+              <Car className="w-16 h-16 mx-auto mb-4 text-tg-hint opacity-50" />
+              <p className="text-tg-hint text-lg mb-2">Автомобили не найдены</p>
+              <button
+                onClick={resetFilters}
+                className="tg-button mt-4"
+              >
+                Сбросить фильтры
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4">
+              {filteredCars.map((car) => (
+                <CarCard 
+                  key={car.id} 
+                  car={car} 
+                  onClick={() => router.push(`/car/${car.id}`)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Нижняя навигация */}
+      <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-tg-hint/10"
+        style={{
+          background: 'linear-gradient(135deg, rgba(15, 14, 24, 0.98), rgba(26, 25, 37, 0.95))',
+          backdropFilter: 'blur(20px)'
+        }}
+      >
+        <div className="flex items-center justify-around px-2 py-2 max-w-3xl mx-auto">
+          {/* Каталог */}
           <button
-            onClick={() => router.push('/catalog')}
-            className="w-full tg-button pulse-button flex items-center justify-center gap-3 py-4 text-base"
+            className="flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all text-tg-accent"
           >
-            <Car className="w-5 h-5" />
-            <span className="font-bold">КАТАЛОГ АВТОМОБИЛЕЙ</span>
+            <Car className="w-6 h-6" />
+            <span className="text-xs font-semibold">Каталог</span>
           </button>
 
-          <button
-            onClick={() => router.push('/contact')}
-            className="w-full tg-button-secondary tg-button flex items-center justify-center gap-3 py-4 text-base"
-          >
-            <MessageCircle className="w-5 h-5" />
-            <span className="font-bold">СВЯЗАТЬСЯ С НАМИ</span>
-          </button>
-
+          {/* Избранное */}
           <button
             onClick={() => router.push('/favorites')}
-            className="w-full tg-button-secondary tg-button flex items-center justify-center gap-2 py-3 relative"
+            className="flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all hover:bg-tg-secondary-bg/50 text-tg-hint relative"
           >
-            <Heart className="w-5 h-5" />
-            <span className="font-semibold">ИЗБРАННОЕ</span>
+            <Heart className="w-6 h-6" />
             {favoritesCount > 0 && (
-              <span className="absolute right-4 bg-tg-accent text-white text-xs font-bold px-2 py-0.5 rounded-full">
+              <span className="absolute top-1 right-2 bg-tg-accent text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
                 {favoritesCount}
               </span>
             )}
+            <span className="text-xs font-semibold">Избранное</span>
           </button>
 
+          {/* Продано */}
           <button
             onClick={() => router.push('/sold')}
-            className="w-full tg-button-secondary tg-button flex items-center justify-center gap-2 py-3"
+            className="flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all hover:bg-tg-secondary-bg/50 text-tg-hint relative"
           >
-            <CheckCircle className="w-5 h-5" />
-            <span className="font-semibold">ПРОДАННЫЕ АВТО</span>
+            <BarChart3 className="w-6 h-6" />
+            {totalSold > 0 && (
+              <span className="absolute top-1 right-2 bg-amber-500 text-white text-xs px-1.5 rounded-full font-bold">
+                {totalSold}
+              </span>
+            )}
+            <span className="text-xs font-semibold">Продано</span>
           </button>
 
+          {/* Контакты */}
+          <button
+            onClick={() => router.push('/contact')}
+            className="flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all hover:bg-tg-secondary-bg/50 text-tg-hint"
+          >
+            <Phone className="w-6 h-6" />
+            <span className="text-xs font-semibold">Контакты</span>
+          </button>
+
+          {/* Админ (только для админа) */}
           {isAdminUser && (
             <button
               onClick={() => router.push('/admin')}
-              className="w-full tg-button-secondary tg-button flex items-center justify-center gap-2 py-3"
+              className="flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all hover:bg-tg-secondary-bg/50 text-tg-hint"
             >
-              <Settings className="w-5 h-5" />
-              <span className="font-semibold">ПАНЕЛЬ УПРАВЛЕНИЯ</span>
+              <Settings className="w-6 h-6" />
+              <span className="text-xs font-semibold">Админ</span>
             </button>
           )}
-        </div>
-
-        {/* ПРЕМИУМ СЕРВИС */}
-        <div className="relative fade-in overflow-hidden tg-card p-8">
-          <div className="relative z-10 space-y-4 text-center">
-            <h2 className="text-2xl font-bold brand-name tracking-[0.2em]">
-              ПРЕМИУМ СЕРВИС
-            </h2>
-            <div className="h-px w-20 mx-auto bg-gradient-to-r from-transparent via-tg-accent to-transparent" />
-            <p className="text-tg-hint text-sm leading-relaxed max-w-sm mx-auto">
-              Полная проверка по базам • Trade-in с выгодой • Оформление под ключ • Гарантия качества
-            </p>
-            <button
-              onClick={() => router.push('/contact')}
-              className="tg-button mx-auto px-8 py-3 text-sm"
-            >
-              УЗНАТЬ ПОДРОБНЕЕ
-            </button>
-          </div>
-        </div>
-
-        {/* Разделитель */}
-        <div className="h-px w-full bg-gradient-to-r from-transparent via-tg-border to-transparent"></div>
-
-        {/* Подпись автора */}
-        <div className="text-center py-4">
-          <a 
-            href="https://t.me/CblHMOCKBA" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-xs text-gray-500/50 hover:text-gray-400/70 transition-colors"
-          >
-            Бота создал @CblHMOCKBA
-          </a>
         </div>
       </div>
     </div>
