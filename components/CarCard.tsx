@@ -4,14 +4,57 @@ import { Car } from '@/types';
 import { Sparkles, Heart } from 'lucide-react';
 import { useFavorites } from '@/lib/useFavorites';
 import { getTelegramWebApp } from '@/lib/telegram';
-import { useState, useRef } from 'react';
+import { useState, useRef, memo, useCallback } from 'react';
 
 interface CarCardProps {
   car: Car;
   onClick?: () => void;
 }
 
-export default function CarCard({ car, onClick }: CarCardProps) {
+// Компонент изображения с плавной загрузкой
+const CarImage = memo(function CarImage({ 
+  src, 
+  alt, 
+  index 
+}: { 
+  src: string; 
+  alt: string; 
+  index: number;
+}) {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+
+  if (error) {
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-tg-secondary-bg to-tg-bg flex items-center justify-center">
+        <svg className="w-12 h-12 text-tg-hint opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {/* Placeholder пока загружается */}
+      {!loaded && (
+        <div className="absolute inset-0 bg-gradient-to-br from-tg-secondary-bg to-tg-bg animate-pulse" />
+      )}
+      <img
+        src={src}
+        alt={alt}
+        className={`w-full h-full object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+        draggable={false}
+        loading={index === 0 ? 'eager' : 'lazy'}
+        decoding="async"
+        onLoad={() => setLoaded(true)}
+        onError={() => setError(true)}
+      />
+    </>
+  );
+});
+
+function CarCardComponent({ car, onClick }: CarCardProps) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const [isAnimating, setIsAnimating] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -19,9 +62,9 @@ export default function CarCard({ car, onClick }: CarCardProps) {
   const startX = useRef(0);
   const scrollLeft = useRef(0);
   
-  const formatPrice = (price: number) => {
+  const formatPrice = useCallback((price: number) => {
     return new Intl.NumberFormat('ru-RU').format(price);
-  };
+  }, []);
 
   const isSold = car.status === 'sold';
   const isNew = !isSold && 
@@ -32,7 +75,7 @@ export default function CarCard({ car, onClick }: CarCardProps) {
   const isFav = isFavorite(car.id, 'car');
   const hasMultiplePhotos = car.photos && car.photos.length > 1;
 
-  const handleFavoriteClick = (e: React.MouseEvent) => {
+  const handleFavoriteClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setIsAnimating(true);
     setTimeout(() => setIsAnimating(false), 300);
@@ -43,27 +86,27 @@ export default function CarCard({ car, onClick }: CarCardProps) {
     if (tg) {
       tg.HapticFeedback.impactOccurred('light');
     }
-  };
+  }, [car.id, toggleFavorite]);
 
-  const handleCardClick = (e: React.MouseEvent) => {
+  const handleCardClick = useCallback((e: React.MouseEvent) => {
     // Не переходим если был drag/swipe
     if (isDragging.current) {
       e.preventDefault();
       return;
     }
     onClick?.();
-  };
+  }, [onClick]);
 
   // Mouse drag для десктопа
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (!scrollRef.current || !hasMultiplePhotos) return;
     isDragging.current = false;
     startX.current = e.pageX - scrollRef.current.offsetLeft;
     scrollLeft.current = scrollRef.current.scrollLeft;
     scrollRef.current.style.cursor = 'grabbing';
-  };
+  }, [hasMultiplePhotos]);
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!scrollRef.current || startX.current === 0) return;
     e.preventDefault();
     const x = e.pageX - scrollRef.current.offsetLeft;
@@ -72,9 +115,9 @@ export default function CarCard({ car, onClick }: CarCardProps) {
       isDragging.current = true;
     }
     scrollRef.current.scrollLeft = scrollLeft.current - walk;
-  };
+  }, []);
 
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
     if (!scrollRef.current) return;
     startX.current = 0;
     scrollRef.current.style.cursor = 'grab';
@@ -83,25 +126,25 @@ export default function CarCard({ car, onClick }: CarCardProps) {
     setTimeout(() => {
       isDragging.current = false;
     }, 100);
-  };
+  }, []);
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     if (startX.current !== 0) {
       handleMouseUp();
     }
-  };
+  }, [handleMouseUp]);
 
   // Touch handlers
-  const handleTouchStart = () => {
+  const handleTouchStart = useCallback(() => {
     isDragging.current = false;
-  };
+  }, []);
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = useCallback(() => {
     // Сбрасываем drag флаг
     setTimeout(() => {
       isDragging.current = false;
     }, 100);
-  };
+  }, []);
 
   return (
     <div
@@ -126,14 +169,13 @@ export default function CarCard({ car, onClick }: CarCardProps) {
             >
               {car.photos.map((photo, index) => (
                 <div 
-                  key={index} 
-                  className="photo-gallery-item h-full"
+                  key={`${car.id}-photo-${index}`} 
+                  className="photo-gallery-item h-full relative"
                 >
-                  <img
+                  <CarImage
                     src={photo}
                     alt={`${car.brand} ${car.model} - фото ${index + 1}`}
-                    className="w-full h-full object-cover"
-                    draggable={false}
+                    index={index}
                   />
                 </div>
               ))}
@@ -224,3 +266,16 @@ export default function CarCard({ car, onClick }: CarCardProps) {
     </div>
   );
 }
+
+// Мемоизируем компонент - перерисовка только при изменении car или onClick
+const CarCard = memo(CarCardComponent, (prevProps, nextProps) => {
+  return (
+    prevProps.car.id === nextProps.car.id &&
+    prevProps.car.status === nextProps.car.status &&
+    prevProps.car.price === nextProps.car.price &&
+    prevProps.car.photos?.length === nextProps.car.photos?.length &&
+    prevProps.onClick === nextProps.onClick
+  );
+});
+
+export default CarCard;

@@ -272,14 +272,16 @@ export default function CarDetailPage() {
             >
               {car.photos.map((photo, index) => (
                 <div 
-                  key={index} 
-                  className="photo-gallery-item h-full"
+                  key={`detail-photo-${index}`} 
+                  className="photo-gallery-item h-full relative"
                 >
                   <img
                     src={photo}
                     alt={`${car.brand} ${car.model} - фото ${index + 1}`}
                     className="w-full h-full object-cover"
                     draggable={false}
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                    decoding="async"
                     onError={() => handleImageError(index)}
                   />
                 </div>
