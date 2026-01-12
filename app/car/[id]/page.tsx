@@ -239,14 +239,14 @@ export default function CarDetailPage() {
           </button>
 
           <div className="absolute left-1/2 -translate-x-1/2">
-            <h1 style={{
-              fontSize: '18px',
-              fontWeight: 'bold',
-              color: '#CC003A',
-              letterSpacing: '0.25em',
-              fontFamily: 'Orbitron, sans-serif',
-              textShadow: '0 0 15px rgba(204, 0, 58, 0.4)'
-            }}>DTM</h1>
+            <h1 
+              className="text-2xl font-black tracking-[0.15em]"
+              style={{
+                fontFamily: 'Orbitron, sans-serif',
+                color: 'white',
+                textShadow: '0 0 20px rgba(255, 255, 255, 0.2)'
+              }}
+            >DTM</h1>
           </div>
 
           <button
@@ -272,16 +272,14 @@ export default function CarDetailPage() {
             >
               {car.photos.map((photo, index) => (
                 <div 
-                  key={`detail-photo-${index}`} 
-                  className="photo-gallery-item h-full relative"
+                  key={index} 
+                  className="photo-gallery-item h-full"
                 >
                   <img
                     src={photo}
                     alt={`${car.brand} ${car.model} - фото ${index + 1}`}
                     className="w-full h-full object-cover"
                     draggable={false}
-                    loading={index === 0 ? 'eager' : 'lazy'}
-                    decoding="async"
                     onError={() => handleImageError(index)}
                   />
                 </div>

@@ -156,14 +156,14 @@ export default function FavoritesPage() {
           </button>
 
           {/* Логотип DTM */}
-          <h1 style={{
-            fontSize: '18px',
-            fontWeight: 'bold',
-            color: '#CC003A',
-            letterSpacing: '0.25em',
-            fontFamily: 'Orbitron, sans-serif',
-            textShadow: '0 0 15px rgba(204, 0, 58, 0.4)'
-          }}>DTM</h1>
+          <h1 
+            className="text-2xl font-black tracking-[0.15em]"
+            style={{
+              fontFamily: 'Orbitron, sans-serif',
+              color: 'white',
+              textShadow: '0 0 20px rgba(255, 255, 255, 0.2)'
+            }}
+          >DTM</h1>
 
           {/* Кнопка звонка */}
           <button

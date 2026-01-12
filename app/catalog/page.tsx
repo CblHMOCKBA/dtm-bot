@@ -150,10 +150,17 @@ export default function CatalogPage() {
           </button>
 
           <div className="flex-1 text-center">
-            <h1 className="text-xl font-bold brand-name text-tg-accent tracking-[0.3em]">
+            <h1 
+              className="text-2xl font-black tracking-[0.15em]"
+              style={{
+                fontFamily: 'Orbitron, sans-serif',
+                color: 'white',
+                textShadow: '0 0 20px rgba(255, 255, 255, 0.2)'
+              }}
+            >
               DTM
             </h1>
-            <p className="text-xs text-tg-hint uppercase tracking-wider">Каталог автомобилей</p>
+            <p className="text-[9px] tracking-[0.2em] uppercase -mt-0.5" style={{ color: '#9CA3AF' }}>Каталог автомобилей</p>
           </div>
 
           <div className="w-11"></div>
