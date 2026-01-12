@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getTelegramWebApp, isAdmin } from '@/lib/telegram';
-import { Plus, CheckCircle, ArrowLeft, BarChart, Send, FileText, Trash, UserPlus, Car } from 'lucide-react';
+import { Plus, CheckCircle, ArrowLeft, BarChart, Send, Type, Trash, UserPlus, Car } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 export default function AdminPage() {
@@ -221,11 +221,11 @@ export default function AdminPage() {
             {/* Три кнопки в один ряд */}
             <div className="grid grid-cols-3 gap-3">
               <button
-                onClick={() => router.push('/admin/info')}
+                onClick={() => router.push('/admin/marquee')}
                 className="w-full tg-button-secondary tg-button flex flex-col items-center justify-center gap-1 py-3"
               >
-                <FileText className="w-5 h-5" />
-                <span className="text-xs font-semibold">ИНФО</span>
+                <Type className="w-5 h-5" />
+                <span className="text-xs font-semibold">СТРОКА</span>
               </button>
               <button
                 onClick={handleClearCache}

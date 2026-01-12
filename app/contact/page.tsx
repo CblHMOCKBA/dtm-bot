@@ -43,41 +43,46 @@ export default function ContactPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pb-6 relative racing-stripes">
-        <div className="sticky top-0 bg-tg-bg z-20 border-b border-tg-hint/10">
+      <div className="min-h-screen pb-6 relative">
+        <div className="sticky top-0 z-20 border-b border-tg-hint/10"
+          style={{
+            background: 'linear-gradient(135deg, rgba(15, 14, 24, 0.5), rgba(26, 25, 37, 0.4))',
+            backdropFilter: 'blur(10px)'
+          }}
+        >
           <div className="flex items-center justify-between px-4 py-3 border-b border-tg-hint/10">
-            <div className="w-11 h-11 bg-tg-secondary-bg animate-pulse rounded-xl"></div>
+            <div className="w-10 h-10 bg-black/30 animate-pulse rounded-full"></div>
             <div className="flex items-center gap-3">
               <div className="space-y-2">
-                <div className="w-32 h-4 bg-tg-secondary-bg rounded animate-pulse"></div>
-                <div className="w-24 h-3 bg-tg-secondary-bg rounded animate-pulse"></div>
+                <div className="w-32 h-4 bg-black/30 rounded animate-pulse"></div>
+                <div className="w-24 h-3 bg-black/30 rounded animate-pulse"></div>
               </div>
             </div>
-            <div className="w-11"></div>
+            <div className="w-10"></div>
           </div>
         </div>
         <div className="px-4 pt-4 space-y-3">
-          <div className="h-20 bg-tg-secondary-bg rounded-xl animate-pulse"></div>
-          <div className="h-20 bg-tg-secondary-bg rounded-xl animate-pulse"></div>
+          <div className="h-20 bg-black/30 rounded-xl animate-pulse"></div>
+          <div className="h-20 bg-black/30 rounded-xl animate-pulse"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen pb-6 relative racing-stripes">
+    <div className="min-h-screen pb-6 relative">
       {/* Шапка */}
-      <div className="sticky top-0 bg-tg-bg z-20 border-b border-tg-hint/10" style={{
-        background: 'linear-gradient(135deg, rgba(15, 14, 24, 0.95), rgba(26, 25, 37, 0.85))',
+      <div className="sticky top-0 z-20 border-b border-tg-hint/10" style={{
+        background: 'linear-gradient(135deg, rgba(15, 14, 24, 0.5), rgba(26, 25, 37, 0.4))',
         backdropFilter: 'blur(10px)'
       }}>
         <div className="flex items-center justify-between px-4 py-3 border-b border-tg-hint/10">
           <button
             onClick={() => router.back()}
-            className="premium-back-button"
+            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-90 hover:border-white/30 hover:bg-white/10 group overflow-hidden"
             aria-label="Назад"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-5 h-5 text-white" />
           </button>
 
           {/* DTM логотип */}
@@ -90,7 +95,7 @@ export default function ContactPage() {
             </div>
           </div>
 
-          <div className="w-11"></div>
+          <div className="w-10"></div>
         </div>
       </div>
 

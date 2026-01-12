@@ -1,10 +1,10 @@
 'use client';
 
 import { Car } from '@/types';
-import { Sparkles, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Sparkles, Heart } from 'lucide-react';
 import { useFavorites } from '@/lib/useFavorites';
 import { getTelegramWebApp } from '@/lib/telegram';
-import { useState, useCallback, useRef } from 'react';
+import { useState, useRef } from 'react';
 
 interface CarCardProps {
   car: Car;
@@ -14,12 +14,10 @@ interface CarCardProps {
 export default function CarCard({ car, onClick }: CarCardProps) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const [isAnimating, setIsAnimating] = useState(false);
-  const [displayIndex, setDisplayIndex] = useState(0);
-  const [nextIndex, setNextIndex] = useState<number | null>(null);
-  const [showNext, setShowNext] = useState(false);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  const isAnimatingRef = useRef(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
   
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('ru-RU').format(price);
@@ -34,70 +32,6 @@ export default function CarCard({ car, onClick }: CarCardProps) {
   const isFav = isFavorite(car.id, 'car');
   const hasMultiplePhotos = car.photos && car.photos.length > 1;
 
-  // Плавное переключение фото (crossfade)
-  const changePhoto = useCallback((newIndex: number) => {
-    if (isAnimatingRef.current || !car.photos || car.photos.length === 0 || newIndex === displayIndex) return;
-    
-    isAnimatingRef.current = true;
-    
-    // Устанавливаем следующее фото и начинаем анимацию появления
-    setNextIndex(newIndex);
-    
-    // Небольшая задержка для загрузки изображения
-    requestAnimationFrame(() => {
-      setShowNext(true);
-    });
-    
-    // После завершения анимации - переключаем основной индекс
-    setTimeout(() => {
-      setDisplayIndex(newIndex);
-      setShowNext(false);
-      setNextIndex(null);
-      isAnimatingRef.current = false;
-    }, 350);
-  }, [car.photos, displayIndex]);
-
-  const nextPhoto = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    e.stopPropagation();
-    if (!hasMultiplePhotos) return;
-    const newIndex = (displayIndex + 1) % car.photos.length;
-    changePhoto(newIndex);
-  }, [hasMultiplePhotos, displayIndex, car.photos?.length, changePhoto]);
-
-  const prevPhoto = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    e.stopPropagation();
-    if (!hasMultiplePhotos) return;
-    const newIndex = (displayIndex - 1 + car.photos.length) % car.photos.length;
-    changePhoto(newIndex);
-  }, [hasMultiplePhotos, displayIndex, car.photos?.length, changePhoto]);
-
-  // Обработка свайпов
-  const minSwipeDistance = 50;
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStart || !touchEnd) return;
-    
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-    
-    if (isLeftSwipe && hasMultiplePhotos) {
-      nextPhoto(e);
-    }
-    if (isRightSwipe && hasMultiplePhotos) {
-      prevPhoto(e);
-    }
-  };
-
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsAnimating(true);
@@ -111,84 +45,99 @@ export default function CarCard({ car, onClick }: CarCardProps) {
     }
   };
 
-  const handleIndicatorClick = (e: React.MouseEvent, index: number) => {
-    e.stopPropagation();
-    changePhoto(index);
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Не переходим если был drag/swipe
+    if (isDragging.current) {
+      e.preventDefault();
+      return;
+    }
+    onClick?.();
+  };
+
+  // Mouse drag для десктопа
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current || !hasMultiplePhotos) return;
+    isDragging.current = false;
+    startX.current = e.pageX - scrollRef.current.offsetLeft;
+    scrollLeft.current = scrollRef.current.scrollLeft;
+    scrollRef.current.style.cursor = 'grabbing';
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!scrollRef.current || startX.current === 0) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX.current) * 1.5;
+    if (Math.abs(walk) > 5) {
+      isDragging.current = true;
+    }
+    scrollRef.current.scrollLeft = scrollLeft.current - walk;
+  };
+
+  const handleMouseUp = () => {
+    if (!scrollRef.current) return;
+    startX.current = 0;
+    scrollRef.current.style.cursor = 'grab';
+
+    // Сбрасываем drag флаг с задержкой
+    setTimeout(() => {
+      isDragging.current = false;
+    }, 100);
+  };
+
+  const handleMouseLeave = () => {
+    if (startX.current !== 0) {
+      handleMouseUp();
+    }
+  };
+
+  // Touch handlers
+  const handleTouchStart = () => {
+    isDragging.current = false;
+  };
+
+  const handleTouchEnd = () => {
+    // Сбрасываем drag флаг
+    setTimeout(() => {
+      isDragging.current = false;
+    }, 100);
   };
 
   return (
     <div
-      onClick={onClick}
+      onClick={handleCardClick}
       className="tg-card overflow-hidden cursor-pointer transition-all active:scale-[0.98] relative group"
     >
-      {/* Изображение с crossfade анимацией */}
-      <div 
-        className="aspect-[4/3] bg-tg-secondary-bg relative overflow-hidden"
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-      >
+      {/* Горизонтальная галерея со свайпом */}
+      <div className="aspect-[4/3] bg-black/30 relative overflow-hidden">
         {car.photos && car.photos.length > 0 ? (
           <>
-            {/* Основное фото (текущее) */}
-            <img
-              src={car.photos[displayIndex]}
-              alt={`${car.brand} ${car.model}`}
-              className="w-full h-full object-cover absolute inset-0 z-[1]"
-              draggable={false}
-            />
-            
-            {/* Следующее фото (появляется поверх с анимацией) */}
-            {nextIndex !== null && (
-              <img
-                src={car.photos[nextIndex]}
-                alt={`${car.brand} ${car.model}`}
-                className="w-full h-full object-cover absolute inset-0 z-[2]"
-                draggable={false}
-                style={{
-                  opacity: showNext ? 1 : 0,
-                  transition: 'opacity 300ms ease-in-out',
-                }}
-              />
-            )}
-
-            {/* Навигационные кнопки */}
-            {hasMultiplePhotos && (
-              <>
-                <button
-                  onClick={prevPhoto}
-                  className="absolute left-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-black/70 active:scale-90 z-10"
-                  aria-label="Предыдущее фото"
+            {/* Свайп-контейнер для фото */}
+            <div 
+              ref={scrollRef}
+              className="photo-gallery w-full h-full"
+              style={{ scrollBehavior: 'auto' }}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseLeave}
+            >
+              {car.photos.map((photo, index) => (
+                <div 
+                  key={index} 
+                  className="photo-gallery-item h-full"
                 >
-                  <ChevronLeft className="w-5 h-5 text-white" />
-                </button>
-                <button
-                  onClick={nextPhoto}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-black/70 active:scale-90 z-10"
-                  aria-label="Следующее фото"
-                >
-                  <ChevronRight className="w-5 h-5 text-white" />
-                </button>
-
-                {/* Индикаторы фото */}
-                <div className="absolute bottom-2 left-0 right-0 flex gap-1 justify-center z-10">
-                  {car.photos.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={(e) => handleIndicatorClick(e, index)}
-                      className={`
-                        h-1 rounded-full transition-all duration-300
-                        ${index === displayIndex 
-                          ? 'w-4 bg-white shadow-[0_0_6px_rgba(255,255,255,0.8)]' 
-                          : 'w-1.5 bg-white/50 hover:bg-white/70'
-                        }
-                      `}
-                      aria-label={`Фото ${index + 1}`}
-                    />
-                  ))}
+                  <img
+                    src={photo}
+                    alt={`${car.brand} ${car.model} - фото ${index + 1}`}
+                    className="w-full h-full object-cover"
+                    draggable={false}
+                  />
                 </div>
-              </>
-            )}
+              ))}
+            </div>
           </>
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-tg-secondary-bg to-tg-bg">
@@ -202,9 +151,9 @@ export default function CarCard({ car, onClick }: CarCardProps) {
         {/* Для ПРОДАННЫХ авто - плашка "Продано" */}
         {isSold && (
           <>
-            <div className="absolute inset-0 bg-black/20 z-[3]"></div>
+            <div className="absolute inset-0 bg-black/20 z-[3] pointer-events-none"></div>
             <div 
-              className="absolute top-3 right-3 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg z-20"
+              className="absolute top-3 right-3 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg z-20 pointer-events-none"
               style={{ backgroundColor: '#6b7280', opacity: 0.95 }}
             >
               <span className="text-white text-xs font-bold uppercase tracking-wide">Продано</span>
@@ -215,7 +164,7 @@ export default function CarCard({ car, onClick }: CarCardProps) {
         {/* Для НЕ проданных авто - NEW бейдж */}
         {!isSold && isNew && (
           <div 
-            className="absolute top-3 right-3 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg z-20"
+            className="absolute top-3 right-3 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg z-20 pointer-events-none"
             style={{ backgroundColor: '#dc0000', animation: 'pulse-glow 2s ease-in-out infinite' }}
           >
             <Sparkles className="w-3.5 h-3.5 text-white" />
@@ -239,15 +188,8 @@ export default function CarCard({ car, onClick }: CarCardProps) {
             `}
             aria-label={isFav ? 'Удалить из избранного' : 'Добавить в избранное'}
           >
-            <Heart className={`w-4 h-4 ${isFav ? 'fill-current' : ''}`} />
+            <Heart className={`w-4 h-4 ${isFav ? 'fill-current' : ''}`} strokeWidth={1.5} />
           </button>
-        )}
-
-        {/* Счетчик фото */}
-        {hasMultiplePhotos && (
-          <div className="absolute top-3 left-12 bg-black/50 backdrop-blur-sm px-2 py-0.5 rounded-full text-white text-xs font-medium z-20">
-            {displayIndex + 1}/{car.photos.length}
-          </div>
         )}
       </div>
 

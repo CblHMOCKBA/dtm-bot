@@ -75,21 +75,21 @@ export default function SoldPage() {
   };
 
   return (
-    <div className="min-h-screen pb-6 racing-stripes">
+    <div className="min-h-screen pb-6">
       {/* Шапка с DTM брендингом */}
       <div className="sticky top-0 z-20 border-b border-tg-hint/10"
         style={{
-          background: 'linear-gradient(135deg, rgba(15, 14, 24, 0.95), rgba(26, 25, 37, 0.85))',
+          background: 'linear-gradient(135deg, rgba(15, 14, 24, 0.5), rgba(26, 25, 37, 0.4))',
           backdropFilter: 'blur(10px)'
         }}
       >
         <div className="flex items-center justify-between px-4 py-3">
           <button
             onClick={() => router.push('/')}
-            className="premium-back-button"
+            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-90 hover:border-white/30 hover:bg-white/10 group overflow-hidden"
             aria-label="Назад"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-5 h-5 text-white" />
           </button>
 
           {/* DTM логотип */}
@@ -100,7 +100,7 @@ export default function SoldPage() {
             <p className="text-xs text-tg-hint uppercase tracking-wider">Проданные автомобили</p>
           </div>
 
-          <div className="w-11"></div>
+          <div className="w-10"></div>
         </div>
 
         {/* Поиск + Кнопка вида */}

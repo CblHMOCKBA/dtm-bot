@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { getTelegramWebApp, isAdmin } from '@/lib/telegram';
 import { CarSpecs, CarStatus } from '@/types';
-import { X, ArrowLeft, Upload, Plus } from 'lucide-react';
+import { X, ArrowLeft, Upload, Plus, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ToastProvider';
 import { validateCarForm, ValidationErrors } from '@/lib/validation';
 
@@ -21,12 +21,20 @@ const DARK_INPUT_STYLE = {
   transition: 'all 0.3s ease'
 };
 
+const MAX_PHOTOS = 20;
+
+interface PhotoItem {
+  url: string;
+  isUploading: boolean;
+  localPreview?: string;
+}
+
 export default function AddCarPage() {
   const router = useRouter();
   const toast = useToast();
   const [loading, setLoading] = useState(false);
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [formData, setFormData] = useState({
     brand: '',
     model: '',
@@ -34,7 +42,6 @@ export default function AddCarPage() {
     price: 0,
     mileage: 0,
     description: '',
-    photos: [] as string[],
     status: 'available' as CarStatus,
     specs: { engine: '', power: '', transmission: '', drive: '', color: '', body_type: '', fuel: '', interior_color: '' } as CarSpecs,
   });
@@ -55,38 +62,138 @@ export default function AddCarPage() {
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-    setUploadingPhoto(true);
-    try {
-      const photoUrls: string[] = [];
-      for (const file of Array.from(files)) {
-        const fileExt = file.name.split('.').pop();
+    
+    const remainingSlots = MAX_PHOTOS - photos.length;
+    if (remainingSlots <= 0) {
+      toast.error(`Максимум ${MAX_PHOTOS} фото`);
+      return;
+    }
+    
+    const filesToUpload = Array.from(files).slice(0, remainingSlots);
+    if (filesToUpload.length < files.length) {
+      toast.warning(`Добавлено только ${filesToUpload.length} из ${files.length} фото (лимит ${MAX_PHOTOS})`);
+    }
+    
+    // Сразу показываем локальные превью
+    const newPhotos: PhotoItem[] = filesToUpload.map(file => ({
+      url: '',
+      isUploading: true,
+      localPreview: URL.createObjectURL(file)
+    }));
+    
+    const startIndex = photos.length;
+    setPhotos(prev => [...prev, ...newPhotos]);
+    
+    // Загружаем параллельно
+    const uploadPromises = filesToUpload.map(async (file, idx) => {
+      try {
+        const compressedFile = await compressImage(file);
+        const fileExt = file.name.split('.').pop() || 'jpg';
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const { data, error } = await supabase.storage.from('car-photos').upload(fileName, file);
+        const { error } = await supabase.storage.from('car-photos').upload(fileName, compressedFile);
         if (error) throw error;
         const { data: { publicUrl } } = supabase.storage.from('car-photos').getPublicUrl(fileName);
-        photoUrls.push(publicUrl);
+        
+        // Обновляем конкретное фото
+        setPhotos(prev => prev.map((p, i) => 
+          i === startIndex + idx ? { url: publicUrl, isUploading: false } : p
+        ));
+        return true;
+      } catch (error) {
+        // Удаляем неудачное фото
+        setPhotos(prev => prev.filter((_, i) => i !== startIndex + idx));
+        return false;
       }
-      setFormData({ ...formData, photos: [...formData.photos, ...photoUrls].slice(0, 10) });
-      toast.success(`Загружено ${photoUrls.length} фото`);
-    } catch (error: any) {
-      toast.error('Ошибка: ' + error.message);
-    } finally {
-      setUploadingPhoto(false);
+    });
+    
+    const results = await Promise.all(uploadPromises);
+    const successCount = results.filter(Boolean).length;
+    if (successCount > 0) {
+      toast.success(`Загружено ${successCount} фото`);
     }
+    
+    // Очищаем input
+    e.target.value = '';
+  };
+
+  // Оптимизированное сжатие
+  const compressImage = (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        // Максимум 1600px - баланс качества и скорости
+        const maxSize = 1600;
+        let { width, height } = img;
+        
+        if (width > height && width > maxSize) {
+          height = (height * maxSize) / width;
+          width = maxSize;
+        } else if (height > maxSize) {
+          width = (width * maxSize) / height;
+          height = maxSize;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        // Качество 0.8 - хороший баланс
+        canvas.toBlob((blob) => {
+          URL.revokeObjectURL(img.src);
+          resolve(blob || file);
+        }, 'image/jpeg', 0.8);
+      };
+      
+      img.onerror = () => {
+        URL.revokeObjectURL(img.src);
+        resolve(file);
+      };
+      
+      img.src = URL.createObjectURL(file);
+    });
   };
 
   const handleRemovePhoto = (index: number) => {
-    setFormData({ ...formData, photos: formData.photos.filter((_, i) => i !== index) });
+    // Освобождаем локальный URL если есть
+    const photo = photos[index];
+    if (photo.localPreview) {
+      URL.revokeObjectURL(photo.localPreview);
+    }
+    setPhotos(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { isValid, errors } = validateCarForm(formData);
+    
+    // Проверяем что все фото загружены
+    const uploadingCount = photos.filter(p => p.isUploading).length;
+    if (uploadingCount > 0) {
+      toast.error(`Дождитесь загрузки ${uploadingCount} фото`);
+      return;
+    }
+    
+    const photoUrls = photos.map(p => p.url).filter(Boolean);
+    const fullFormData = { ...formData, photos: photoUrls };
+    
+    const { isValid, errors } = validateCarForm(fullFormData);
     setValidationErrors(errors);
     if (!isValid) { toast.error('Исправьте ошибки'); return; }
     setLoading(true);
     try {
-      const { error } = await supabase.from('cars').insert([{ brand: formData.brand, model: formData.model, year: formData.year, price: formData.price, mileage: formData.mileage, description: formData.description, photos: formData.photos, status: formData.status, specs: formData.specs }]);
+      const { error } = await supabase.from('cars').insert([{ 
+        brand: formData.brand, 
+        model: formData.model, 
+        year: formData.year, 
+        price: formData.price, 
+        mileage: formData.mileage, 
+        description: formData.description, 
+        photos: photoUrls, 
+        status: formData.status, 
+        specs: formData.specs 
+      }]);
       if (error) throw error;
       toast.success('✅ Автомобиль добавлен!');
       router.push('/admin');
@@ -96,6 +203,8 @@ export default function AddCarPage() {
       setLoading(false);
     }
   };
+
+  const uploadingCount = photos.filter(p => p.isUploading).length;
 
   return (
     <div className="min-h-screen pb-6" style={{ background: '#04030E' }}>
@@ -238,30 +347,40 @@ export default function AddCarPage() {
         <div style={{ background: 'linear-gradient(135deg, rgba(15, 14, 24, 0.8), rgba(26, 25, 37, 0.6))', backdropFilter: 'blur(10px)', border: '1px solid rgba(204, 0, 58, 0.2)', borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
             <div style={{ width: '4px', height: '20px', background: '#CC003A', borderRadius: '2px' }}></div>
-            <h2 style={{ fontSize: '16px', fontWeight: 'bold', textTransform: 'uppercase' }}>Фотографии *</h2>
+            <h2 style={{ fontSize: '16px', fontWeight: 'bold', textTransform: 'uppercase' }}>Фотографии * <span style={{ fontSize: '12px', color: '#9CA3AF', fontWeight: 'normal' }}>({photos.length}/{MAX_PHOTOS})</span></h2>
           </div>
-          {formData.photos.length > 0 && (
+          {photos.length > 0 && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '12px' }}>
-              {formData.photos.map((photo, index) => (
-                <div key={index} style={{ position: 'relative', aspectRatio: '16/9', borderRadius: '8px', overflow: 'hidden', border: '2px solid rgba(204, 0, 58, 0.3)' }}>
-                  <img src={photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <button type="button" onClick={() => handleRemovePhoto(index)} style={{ position: 'absolute', top: '6px', right: '6px', width: '28px', height: '28px', background: '#EF4444', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <X style={{ width: '16px', height: '16px', color: 'white' }} />
-                  </button>
-                  {index === 0 && <div style={{ position: 'absolute', bottom: '6px', left: '6px', background: '#CC003A', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}>ГЛАВНАЯ</div>}
+              {photos.map((photo, index) => (
+                <div key={index} style={{ position: 'relative', aspectRatio: '16/9', borderRadius: '8px', overflow: 'hidden', border: `2px solid ${photo.isUploading ? 'rgba(234, 179, 8, 0.5)' : 'rgba(204, 0, 58, 0.3)'}` }}>
+                  <img src={photo.localPreview || photo.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: photo.isUploading ? 0.6 : 1 }} />
+                  {photo.isUploading ? (
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)' }}>
+                      <Loader2 style={{ width: '24px', height: '24px', color: '#EAB308', animation: 'spin 1s linear infinite' }} />
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => handleRemovePhoto(index)} style={{ position: 'absolute', top: '6px', right: '6px', width: '28px', height: '28px', background: '#EF4444', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <X style={{ width: '16px', height: '16px', color: 'white' }} />
+                    </button>
+                  )}
+                  {index === 0 && !photo.isUploading && <div style={{ position: 'absolute', bottom: '6px', left: '6px', background: '#CC003A', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}>ГЛАВНАЯ</div>}
                 </div>
               ))}
             </div>
           )}
-          {formData.photos.length < 10 && (
-            <label style={{ display: 'block' }}>
-              <input type="file" multiple accept="image/*" onChange={handlePhotoUpload} disabled={uploadingPhoto} style={{ display: 'none' }} />
-              <div style={{ width: '100%', padding: '12px', background: 'rgba(15, 14, 24, 0.6)', border: '2px solid rgba(204, 0, 58, 0.3)', borderRadius: '12px', cursor: uploadingPhoto ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '14px', fontWeight: 600, opacity: uploadingPhoto ? 0.5 : 1 }}>
-                <Upload style={{ width: '16px', height: '16px' }} />
-                {uploadingPhoto ? 'Загрузка...' : (formData.photos.length === 0 ? 'ДОБАВИТЬ ФОТО' : `ДОБАВИТЬ ЕЩЁ (${formData.photos.length}/10)`)}
-              </div>
-            </label>
-          )}
+          <label style={{ display: 'block' }}>
+            <input type="file" multiple accept="image/*" onChange={handlePhotoUpload} disabled={photos.length >= MAX_PHOTOS} style={{ display: 'none' }} />
+            <div style={{ width: '100%', padding: '12px', background: 'rgba(15, 14, 24, 0.6)', border: '2px solid rgba(204, 0, 58, 0.3)', borderRadius: '12px', cursor: photos.length >= MAX_PHOTOS ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '14px', fontWeight: 600, opacity: photos.length >= MAX_PHOTOS ? 0.5 : 1 }}>
+              <Upload style={{ width: '16px', height: '16px' }} />
+              {photos.length >= MAX_PHOTOS 
+                ? `МАКСИМУМ ${MAX_PHOTOS} ФОТО` 
+                : uploadingCount > 0 
+                  ? `ЗАГРУЗКА ${uploadingCount} ФОТО...` 
+                  : photos.length === 0 
+                    ? 'ДОБАВИТЬ ФОТО' 
+                    : `ДОБАВИТЬ ЕЩЁ (${photos.length}/${MAX_PHOTOS})`}
+            </div>
+          </label>
         </div>
 
         <button
@@ -313,7 +432,7 @@ export default function AddCarPage() {
                 borderRadius: '50%',
                 animation: 'spin 1s linear infinite'
               }} />
-              <span>{uploadingPhoto ? 'Загрузка фото...' : 'Добавление...'}</span>
+              <span>{uploadingCount > 0 ? 'Загрузка фото...' : 'Добавление...'}</span>
             </>
           ) : (
             <>

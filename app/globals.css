@@ -31,7 +31,6 @@
 ======================================== */
 
 body {
-  background-color: #04030E;
   color: var(--tg-theme-text-color);
   font-family: 'Rajdhani', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -40,10 +39,11 @@ body {
   position: relative;
   overflow-x: hidden;
   
-  /* Фон DTM напрямую на body */
+  /* Фон DTM - изображение без сплошного цвета под ним */
+  background-color: #04030E; /* fallback если нет изображения */
   background-image: url('/dtm-background.jpg');
   background-size: cover;
-  background-position: center;
+  background-position: center top;
   background-repeat: no-repeat;
   background-attachment: fixed;
 }
@@ -55,11 +55,13 @@ body::before {
   left: 0;
   width: 100%;
   height: 100%;
+  /* Затемнение фона - видно но не слепит */
   background: 
+    radial-gradient(ellipse at top right, rgba(204, 0, 58, 0.08) 0%, transparent 50%),
     linear-gradient(180deg, 
-      rgba(4, 3, 14, 0.3) 0%,
-      rgba(4, 3, 14, 0.4) 50%,
-      rgba(4, 3, 14, 0.5) 100%
+      rgba(4, 3, 14, 0.4) 0%,
+      rgba(4, 3, 14, 0.5) 50%,
+      rgba(4, 3, 14, 0.6) 100%
     );
   pointer-events: none;
   z-index: 0;
@@ -173,24 +175,21 @@ body::before {
 }
 
 .tg-card {
-  background: linear-gradient(135deg, rgba(15, 14, 24, 0.95), rgba(26, 25, 37, 0.85));
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(204, 0, 58, 0.2);
+  background: rgba(10, 10, 20, 0.3);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 
-    0 4px 20px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
 .tg-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(204, 0, 58, 0.4);
+  border-color: rgba(204, 0, 58, 0.3);
   box-shadow: 
-    0 8px 32px rgba(204, 0, 58, 0.2),
-    0 4px 20px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 8px 25px rgba(204, 0, 58, 0.1),
+    0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .tg-secondary-bg {
@@ -821,4 +820,651 @@ body::before {
 
 .premium-filter-apply-button:active {
   transform: translateY(0);
+}
+
+/* ========================================
+   REFINED UI COMPONENTS (КАК В СТАРОМ ДИЗАЙНЕ)
+======================================== */
+
+/* Fade-in анимация */
+.fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Pulse Button (как раньше) */
+.pulse-button {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(204, 0, 58, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(204, 0, 58, 0.6);
+  }
+}
+
+/* Refined Status Tab (утонченные вкладки) */
+.refined-status-tab {
+  position: relative;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.03);
+  color: #9CA3AF;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.refined-status-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-1px);
+  border-color: rgba(204, 0, 58, 0.2);
+}
+
+.refined-status-tab.active {
+  background: linear-gradient(135deg, rgba(204, 0, 58, 0.8), rgba(230, 0, 68, 0.8));
+  color: white;
+  border-color: rgba(204, 0, 58, 0.4);
+  box-shadow: 
+    0 2px 12px rgba(204, 0, 58, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Refined Search Input (утонченный поиск) */
+.refined-search-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 15px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+}
+
+.refined-search-input:focus {
+  border-color: rgba(204, 0, 58, 0.5);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 
+    0 0 0 3px rgba(204, 0, 58, 0.1),
+    0 2px 8px rgba(204, 0, 58, 0.2);
+  transform: translateY(-1px);
+}
+
+.refined-search-input::placeholder {
+  color: #9CA3AF;
+  opacity: 0.5;
+}
+
+/* Refined Icon Button (утонченные квадратные кнопки) */
+.refined-icon-button {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.refined-icon-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(204, 0, 58, 0.15), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.refined-icon-button:hover {
+  border-color: rgba(204, 0, 58, 0.5);
+  background: rgba(204, 0, 58, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(204, 0, 58, 0.3);
+}
+
+.refined-icon-button:hover::before {
+  opacity: 1;
+}
+
+.refined-icon-button:active {
+  transform: translateY(0) scale(0.95);
+}
+
+/* Refined Active Badge (утонченные badge) */
+.refined-active-badge {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(204, 0, 58, 0.1);
+  border: 1px solid rgba(204, 0, 58, 0.3);
+  color: #E60044;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s;
+  cursor: pointer;
+  position: relative;
+}
+
+.refined-active-badge:hover {
+  background: rgba(204, 0, 58, 0.2);
+  border-color: rgba(204, 0, 58, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(204, 0, 58, 0.3);
+}
+
+/* Refined Select (утонченный select) */
+.refined-select {
+  width: 100%;
+  background: rgba(15, 14, 24, 0.6);
+  border: 1px solid rgba(204, 0, 58, 0.2);
+  color: white;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 15px;
+  transition: all 0.3s;
+  outline: none;
+  cursor: pointer;
+}
+
+.refined-select:focus {
+  border-color: rgba(204, 0, 58, 0.6);
+  background: rgba(15, 14, 24, 0.8);
+  box-shadow: 0 0 0 3px rgba(204, 0, 58, 0.1);
+  transform: translateY(-1px);
+}
+
+.refined-select option {
+  background: #0F0E18;
+  color: white;
+}
+
+/* Refined Input (утонченный input) */
+.refined-input {
+  width: 100%;
+  background: rgba(15, 14, 24, 0.6);
+  border: 1px solid rgba(204, 0, 58, 0.2);
+  color: white;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 15px;
+  transition: all 0.3s;
+  outline: none;
+}
+
+.refined-input:focus {
+  border-color: rgba(204, 0, 58, 0.6);
+  background: rgba(15, 14, 24, 0.8);
+  box-shadow: 0 0 0 3px rgba(204, 0, 58, 0.1);
+  transform: translateY(-1px);
+}
+
+.refined-input::placeholder {
+  color: #9CA3AF;
+  opacity: 0.5;
+}
+
+/* Refined Nav Button (утонченная навигация) */
+.refined-nav-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  transition: all 0.3s;
+  color: #9CA3AF;
+  position: relative;
+  cursor: pointer;
+}
+
+.refined-nav-button:hover {
+  background: rgba(204, 0, 58, 0.1);
+  color: #E60044;
+  transform: translateY(-2px);
+}
+
+.refined-nav-button:active {
+  transform: translateY(0) scale(0.95);
+}
+
+.refined-nav-button.active {
+  color: #CC003A;
+}
+
+.refined-nav-button.active::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  background: rgba(204, 0, 58, 0.1);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* tg-button-secondary (вторичная кнопка) */
+.tg-button-secondary {
+  background: transparent !important;
+  border: 1px solid rgba(204, 0, 58, 0.3);
+  box-shadow: none !important;
+}
+
+.tg-button-secondary:hover {
+  border-color: rgba(204, 0, 58, 0.6);
+  background: rgba(204, 0, 58, 0.1) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(204, 0, 58, 0.3) !important;
+}
+
+/* ========================================
+   SHINE EFFECTS - ЭФФЕКТ ГЛЯНЦА ВЕЗДЕ!
+======================================== */
+
+/* Shine на всех кнопках */
+.tg-button::after,
+.tg-button-secondary::after,
+.refined-icon-button::after,
+.refined-status-tab::after,
+.premium-back-button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.6s;
+  pointer-events: none;
+}
+
+.tg-button:hover::after,
+.tg-button-secondary:hover::after,
+.refined-icon-button:hover::after,
+.refined-status-tab:hover::after,
+.premium-back-button:hover::after {
+  left: 100%;
+}
+
+/* Shine на карточках статистики */
+.tg-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.tg-card::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -150%;
+  width: 100%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transform: skewX(-25deg);
+  transition: left 0.7s;
+  pointer-events: none;
+}
+
+.tg-card:hover::after {
+  left: 150%;
+}
+
+/* Дополнительный shine на nav кнопках */
+.refined-nav-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.refined-nav-button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.refined-nav-button:hover::after {
+  left: 100%;
+}
+
+/* Shine на поиске при фокусе */
+.refined-search-input {
+  position: relative;
+  overflow: hidden;
+}
+
+.refined-search-input::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transition: left 0.6s;
+  pointer-events: none;
+}
+
+.refined-search-input:focus::after {
+  left: 100%;
+}
+
+/* Усиленный shine для активных элементов */
+.refined-status-tab.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left 0.8s;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.refined-status-tab.active:hover::before {
+  left: 100%;
+}
+
+/* Shine на badge */
+.refined-active-badge {
+  position: relative;
+  overflow: hidden;
+}
+
+.refined-active-badge::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.refined-active-badge:hover::after {
+  left: 100%;
+}
+
+/* Shine на select и input при фокусе */
+.refined-select,
+.refined-input {
+  position: relative;
+  overflow: hidden;
+}
+
+.refined-select::after,
+.refined-input::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transition: left 0.6s;
+  pointer-events: none;
+}
+
+.refined-select:focus::after,
+.refined-input:focus::after {
+  left: 100%;
+}
+
+/* ========================================
+   SCROLLBAR HIDE - Скрытие полосы прокрутки
+======================================== */
+
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* ========================================
+   PAGE TRANSITIONS - Перелистывание как книга
+======================================== */
+
+.page-transition-wrapper {
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.page-transition-container {
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Входящая страница СПРАВА (идём вперёд/вглубь) */
+@keyframes page-slide-in-right {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Входящая страница СЛЕВА (идём назад) */
+@keyframes page-slide-in-left {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Уходящая страница ВЛЕВО (идём вперёд) */
+@keyframes page-slide-out-left {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+/* Уходящая страница ВПРАВО (идём назад) */
+@keyframes page-slide-out-right {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Классы анимаций */
+.page-enter-forward {
+  animation: page-slide-in-right 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  will-change: transform, opacity;
+}
+
+.page-enter-back {
+  animation: page-slide-in-left 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  will-change: transform, opacity;
+}
+
+.page-exit-forward {
+  animation: page-slide-out-left 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  will-change: transform, opacity;
+}
+
+.page-exit-back {
+  animation: page-slide-out-right 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  will-change: transform, opacity;
+}
+
+/* ========================================
+   SMOOTH SCROLL GALLERY - Свайп как на auto.ru
+======================================== */
+
+.snap-x {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.snap-center {
+  scroll-snap-align: center;
+}
+
+.snap-mandatory {
+  scroll-snap-type: x mandatory;
+}
+
+/* Плавная прокрутка галереи */
+.gallery-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Контейнер галереи - свободный скролл без snap */
+.photo-gallery {
+  display: flex;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.photo-gallery::-webkit-scrollbar {
+  display: none;
+}
+
+.photo-gallery:active {
+  cursor: grabbing;
+}
+
+.photo-gallery-item {
+  flex-shrink: 0;
+  width: 100%;
+}
+
+/* Улучшенные индикаторы галереи */
+.gallery-indicator {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gallery-indicator.active {
+  transform: scaleX(1.5);
+}
+
+/* Touch feedback для фото */
+.photo-gallery-item img {
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* ========================================
+   MARQUEE - Бегущая строка
+======================================== */
+
+.marquee-container {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.marquee-content {
+  display: inline-flex;
+  animation: marquee 20s linear infinite;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.33%);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

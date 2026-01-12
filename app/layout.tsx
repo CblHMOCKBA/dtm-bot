@@ -3,6 +3,8 @@ import './globals.css'
 import { TelegramProvider } from '@/components/TelegramProvider'
 import { ToastProvider } from '@/components/ToastProvider'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { NavigationProvider } from '@/components/NavigationProvider'
+import PageTransition from '@/components/PageTransition'
 
 export const metadata: Metadata = {
   title: 'DTM',
@@ -20,7 +22,11 @@ export default function RootLayout({
         <ErrorBoundary>
           <TelegramProvider>
             <ToastProvider>
-              {children}
+              <NavigationProvider>
+                <PageTransition>
+                  {children}
+                </PageTransition>
+              </NavigationProvider>
             </ToastProvider>
           </TelegramProvider>
         </ErrorBoundary>
