@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { ArrowLeft, Phone, MessageCircle, Clock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import BottomNavigation from '@/components/BottomNavigation';
 
 export default function ContactPage() {
   const router = useRouter();
@@ -43,7 +44,7 @@ export default function ContactPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pb-6 relative">
+      <div className="min-h-screen pb-20 relative">
         <div className="sticky top-0 z-20 border-b border-tg-hint/10"
           style={{
             background: 'linear-gradient(135deg, rgba(15, 14, 24, 0.5), rgba(26, 25, 37, 0.4))',
@@ -65,12 +66,13 @@ export default function ContactPage() {
           <div className="h-20 bg-black/30 rounded-xl animate-pulse"></div>
           <div className="h-20 bg-black/30 rounded-xl animate-pulse"></div>
         </div>
+        <BottomNavigation />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen pb-6 relative">
+    <div className="min-h-screen pb-20 relative">
       {/* Шапка */}
       <div className="sticky top-0 z-20 border-b border-tg-hint/10" style={{
         background: 'linear-gradient(135deg, rgba(15, 14, 24, 0.5), rgba(26, 25, 37, 0.4))',
@@ -215,6 +217,9 @@ export default function ContactPage() {
           background: 'linear-gradient(90deg, transparent, rgba(204, 0, 58, 0.5), transparent)'
         }}
       ></div>
+
+      {/* Нижняя навигация */}
+      <BottomNavigation />
     </div>
   );
 }

@@ -1419,8 +1419,6 @@ body::before {
 .photo-gallery-item {
   flex-shrink: 0;
   width: 100%;
-  position: relative;
-  contain: layout style paint;
 }
 
 /* Улучшенные индикаторы галереи */
@@ -1432,15 +1430,11 @@ body::before {
   transform: scaleX(1.5);
 }
 
-/* Touch feedback для фото - с оптимизациями */
+/* Touch feedback для фото */
 .photo-gallery-item img {
   pointer-events: none;
   -webkit-user-drag: none;
   user-select: none;
-  will-change: opacity;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  transform: translateZ(0);
 }
 
 /* ========================================
@@ -1466,6 +1460,50 @@ body::before {
   }
 }
 
+/* ========================================
+   BOTTOM NAVIGATION ANIMATION
+======================================== */
+
+@keyframes nav-slide-up {
+  0% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.bottom-nav-enter {
+  animation: nav-slide-up 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Active indicator animation for nav buttons */
+.refined-nav-button.active::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #CC003A, transparent);
+  border-radius: 2px;
+  animation: nav-indicator-pulse 2s ease-in-out infinite;
+}
+
+@keyframes nav-indicator-pulse {
+  0%, 100% {
+    opacity: 0.6;
+    width: 20px;
+  }
+  50% {
+    opacity: 1;
+    width: 30px;
+  }
+}
+
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -1473,37 +1511,4 @@ body::before {
   to {
     transform: rotate(360deg);
   }
-}
-
-/* ========================================
-   IMAGE LOADING OPTIMIZATIONS
-======================================== */
-
-/* Плавное появление карточек */
-.tg-card {
-  contain: layout style;
-  will-change: transform;
-}
-
-/* GPU ускорение для анимаций страниц */
-.page-transition-container {
-  min-height: 100vh;
-  width: 100%;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  transform: translateZ(0);
-  contain: layout style;
-}
-
-/* Предзагрузка изображений в галерее */
-.photo-gallery {
-  contain: layout style;
-}
-
-/* Отключаем перерисовку при скролле */
-.photo-gallery-item::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
 }

@@ -8,6 +8,7 @@ import { Car as CarType } from '@/types';
 import CarCard from '@/components/CarCard';
 import CarCardSkeleton from '@/components/CarCardSkeleton';
 import { getTelegramWebApp } from '@/lib/telegram';
+import BottomNavigation from '@/components/BottomNavigation';
 
 export default function SoldPage() {
   const router = useRouter();
@@ -75,7 +76,7 @@ export default function SoldPage() {
   };
 
   return (
-    <div className="min-h-screen pb-6">
+    <div className="min-h-screen pb-20">
       {/* Шапка с DTM брендингом */}
       <div className="sticky top-0 z-20 border-b border-tg-hint/10"
         style={{
@@ -166,6 +167,9 @@ export default function SoldPage() {
           )}
         </div>
       </div>
+
+      {/* Нижняя навигация */}
+      <BottomNavigation />
     </div>
   );
 }

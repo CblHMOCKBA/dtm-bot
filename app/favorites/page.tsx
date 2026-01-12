@@ -9,6 +9,7 @@ import { useFavorites } from '@/lib/useFavorites';
 import { ArrowLeft, Phone, Heart, Trash2, Car as CarIcon, MessageCircle, X } from 'lucide-react';
 import { formatPrice } from '@/lib/formatters';
 import { useNavigation } from '@/components/NavigationProvider';
+import BottomNavigation from '@/components/BottomNavigation';
 
 export default function FavoritesPage() {
   const router = useRouter();
@@ -136,7 +137,7 @@ export default function FavoritesPage() {
   };
 
   return (
-    <div className="min-h-screen pb-6">
+    <div className="min-h-screen pb-20">
       {/* Шапка */}
       <div className="sticky top-0 z-10 border-b border-tg-hint/10"
         style={{
@@ -304,6 +305,9 @@ export default function FavoritesPage() {
           </button>
         </div>
       )}
+
+      {/* Нижняя навигация */}
+      <BottomNavigation />
     </div>
   );
 }

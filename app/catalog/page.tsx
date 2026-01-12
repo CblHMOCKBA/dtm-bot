@@ -8,6 +8,7 @@ import { Car as CarType, CarStatus } from '@/types';
 import CarCard from '@/components/CarCard';
 import CarCardSkeleton from '@/components/CarCardSkeleton';
 import { getTelegramWebApp } from '@/lib/telegram';
+import BottomNavigation from '@/components/BottomNavigation';
 
 export default function CatalogPage() {
   const router = useRouter();
@@ -131,7 +132,7 @@ export default function CatalogPage() {
   ];
 
   return (
-    <div className="min-h-screen pb-6 racing-stripes">
+    <div className="min-h-screen pb-20 racing-stripes">
       {/* Шапка */}
       <div className="sticky top-0 z-20 border-b border-tg-hint/10"
         style={{
@@ -361,6 +362,9 @@ export default function CatalogPage() {
           )}
         </div>
       </div>
+
+      {/* Нижняя навигация */}
+      <BottomNavigation />
     </div>
   );
 }
