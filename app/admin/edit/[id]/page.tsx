@@ -182,7 +182,48 @@ export default function EditCarPage() {
     });
   };
 
-  const handleRemovePhoto = (index: number) => {
+  // Извлекаем имя файла из URL Supabase
+  const getFileNameFromUrl = (url: string): string | null => {
+    try {
+      // URL: https://xxx.supabase.co/storage/v1/object/public/car-photos/filename.jpg
+      const parts = url.split('/car-photos/');
+      if (parts.length > 1) {
+        return parts[1].split('?')[0]; // убираем query параметры если есть
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
+  // Удаление фото из Storage
+  const deletePhotoFromStorage = async (photoUrl: string): Promise<boolean> => {
+    const fileName = getFileNameFromUrl(photoUrl);
+    if (!fileName) return false;
+    
+    try {
+      const { error } = await supabase.storage.from('car-photos').remove([fileName]);
+      if (error) {
+        console.error('Error deleting photo from storage:', error);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('Error deleting photo:', error);
+      return false;
+    }
+  };
+
+  const handleRemovePhoto = async (index: number) => {
+    const photoUrl = formData.photos[index];
+    
+    // Удаляем из Storage
+    const deleted = await deletePhotoFromStorage(photoUrl);
+    if (deleted) {
+      toast.success('Фото удалено');
+    }
+    
+    // Удаляем из формы (даже если из Storage не удалилось)
     setFormData({ ...formData, photos: formData.photos.filter((_, i) => i !== index) });
   };
 
@@ -216,12 +257,24 @@ export default function EditCarPage() {
   };
 
   const handleDelete = async () => {
-    if (!confirm('⚠️ ВНИМАНИЕ!\n\nВы действительно хотите УДАЛИТЬ этот автомобиль?\n\nЭто действие НЕОБРАТИМО!')) return;
+    if (!confirm('⚠️ ВНИМАНИЕ!\n\nВы действительно хотите УДАЛИТЬ этот автомобиль?\n\nВсе фотографии также будут удалены.\n\nЭто действие НЕОБРАТИМО!')) return;
     setDeleting(true);
     try {
+      // Сначала удаляем все фото из Storage
+      if (formData.photos && formData.photos.length > 0) {
+        const fileNames = formData.photos
+          .map(url => getFileNameFromUrl(url))
+          .filter((name): name is string => name !== null);
+        
+        if (fileNames.length > 0) {
+          await supabase.storage.from('car-photos').remove(fileNames);
+        }
+      }
+      
+      // Затем удаляем запись из БД
       const { error } = await supabase.from('cars').delete().eq('id', params.id);
       if (error) throw error;
-      toast.success('Автомобиль удалён');
+      toast.success('Автомобиль и все фото удалены');
       router.push('/admin');
     } catch (error: any) {
       toast.error('Ошибка: ' + error.message);
