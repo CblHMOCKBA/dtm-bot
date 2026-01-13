@@ -8,6 +8,14 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
     const tg = initTelegramWebApp();
     
     if (tg) {
+      // Отключаем вертикальные свайпы Telegram (закрытие приложения)
+      if (typeof tg.disableVerticalSwipes === 'function') {
+        tg.disableVerticalSwipes();
+      }
+      
+      // Разворачиваем на весь экран
+      tg.expand();
+      
       // Применяем тему Telegram
       document.documentElement.setAttribute(
         'data-theme',

@@ -74,58 +74,106 @@ export default function AddCarPage() {
       toast.warning(`Добавлено только ${filesToUpload.length} из ${files.length} фото (лимит ${MAX_PHOTOS})`);
     }
     
-    // Сразу показываем локальные превью
-    const newPhotos: PhotoItem[] = filesToUpload.map(file => ({
-      url: '',
-      isUploading: true,
-      localPreview: URL.createObjectURL(file)
-    }));
+    // Очищаем input сразу
+    e.target.value = '';
     
-    const startIndex = photos.length;
-    setPhotos(prev => [...prev, ...newPhotos]);
+    // Загружаем последовательно по 2 файла за раз чтобы не перегружать память
+    const BATCH_SIZE = 2;
+    let successCount = 0;
     
-    // Загружаем параллельно
-    const uploadPromises = filesToUpload.map(async (file, idx) => {
-      try {
-        const compressedFile = await compressImage(file);
-        const fileExt = file.name.split('.').pop() || 'jpg';
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const { error } = await supabase.storage.from('car-photos').upload(fileName, compressedFile);
-        if (error) throw error;
-        const { data: { publicUrl } } = supabase.storage.from('car-photos').getPublicUrl(fileName);
+    for (let i = 0; i < filesToUpload.length; i += BATCH_SIZE) {
+      const batch = filesToUpload.slice(i, i + BATCH_SIZE);
+      
+      // Создаём превью для текущего батча
+      const batchPreviews: PhotoItem[] = batch.map(file => ({
+        url: '',
+        isUploading: true,
+        localPreview: URL.createObjectURL(file)
+      }));
+      
+      const startIndex = photos.length + i;
+      setPhotos(prev => [...prev, ...batchPreviews]);
+      
+      // Загружаем батч параллельно
+      const uploadPromises = batch.map(async (file, batchIdx) => {
+        const globalIdx = startIndex + batchIdx;
+        let localPreviewUrl: string | undefined;
         
-        // Обновляем конкретное фото
-        setPhotos(prev => prev.map((p, i) => 
-          i === startIndex + idx ? { url: publicUrl, isUploading: false } : p
-        ));
-        return true;
-      } catch (error) {
-        // Удаляем неудачное фото
-        setPhotos(prev => prev.filter((_, i) => i !== startIndex + idx));
-        return false;
+        try {
+          // Сжимаем изображение
+          const compressedFile = await compressImage(file);
+          const fileExt = file.name.split('.').pop() || 'jpg';
+          const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+          
+          const { error } = await supabase.storage.from('car-photos').upload(fileName, compressedFile);
+          if (error) throw error;
+          
+          const { data: { publicUrl } } = supabase.storage.from('car-photos').getPublicUrl(fileName);
+          
+          // Сохраняем localPreview для очистки
+          setPhotos(prev => {
+            localPreviewUrl = prev[globalIdx]?.localPreview;
+            return prev.map((p, idx) => 
+              idx === globalIdx ? { url: publicUrl, isUploading: false } : p
+            );
+          });
+          
+          // Очищаем blob URL после успешной загрузки
+          if (localPreviewUrl) {
+            URL.revokeObjectURL(localPreviewUrl);
+          }
+          
+          return true;
+        } catch (error) {
+          console.error('Upload error:', error);
+          // Удаляем неудачное фото и очищаем blob URL
+          setPhotos(prev => {
+            const photo = prev[globalIdx];
+            if (photo?.localPreview) {
+              URL.revokeObjectURL(photo.localPreview);
+            }
+            return prev.filter((_, idx) => idx !== globalIdx);
+          });
+          return false;
+        }
+      });
+      
+      const results = await Promise.all(uploadPromises);
+      successCount += results.filter(Boolean).length;
+      
+      // Небольшая пауза между батчами для освобождения памяти
+      if (i + BATCH_SIZE < filesToUpload.length) {
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
-    });
-    
-    const results = await Promise.all(uploadPromises);
-    const successCount = results.filter(Boolean).length;
-    if (successCount > 0) {
-      toast.success(`Загружено ${successCount} фото`);
     }
     
-    // Очищаем input
-    e.target.value = '';
+    if (successCount > 0) {
+      toast.success(`Загружено ${successCount} фото`);
+    } else if (filesToUpload.length > 0) {
+      toast.error('Не удалось загрузить фото');
+    }
   };
 
-  // Оптимизированное сжатие
+  // Оптимизированное сжатие с очисткой памяти
   const compressImage = (file: File): Promise<Blob> => {
     return new Promise((resolve, reject) => {
+      // Если файл маленький, не сжимаем
+      if (file.size < 500000) { // меньше 500KB
+        resolve(file);
+        return;
+      }
+      
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
       
       img.onload = () => {
-        // Максимум 1600px - баланс качества и скорости
-        const maxSize = 1600;
+        // Сразу освобождаем blob URL
+        URL.revokeObjectURL(objectUrl);
+        
+        // Максимум 1400px для мобильных устройств
+        const maxSize = 1400;
         let { width, height } = img;
         
         if (width > height && width > maxSize) {
@@ -140,19 +188,26 @@ export default function AddCarPage() {
         canvas.height = height;
         ctx?.drawImage(img, 0, 0, width, height);
         
-        // Качество 0.8 - хороший баланс
+        // Качество 0.75 - оптимально для мобильных
         canvas.toBlob((blob) => {
-          URL.revokeObjectURL(img.src);
-          resolve(blob || file);
-        }, 'image/jpeg', 0.8);
+          // Очищаем canvas
+          canvas.width = 0;
+          canvas.height = 0;
+          
+          if (blob && blob.size < file.size) {
+            resolve(blob);
+          } else {
+            resolve(file);
+          }
+        }, 'image/jpeg', 0.75);
       };
       
       img.onerror = () => {
-        URL.revokeObjectURL(img.src);
+        URL.revokeObjectURL(objectUrl);
         resolve(file);
       };
       
-      img.src = URL.createObjectURL(file);
+      img.src = objectUrl;
     });
   };
 

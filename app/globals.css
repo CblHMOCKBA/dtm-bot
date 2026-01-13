@@ -27,6 +27,34 @@
 }
 
 /* ========================================
+   TELEGRAM MINI APP - БЛОКИРОВКА СВАЙПОВ
+======================================== */
+
+html {
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+html, body {
+  /* Предотвращает "резиновый" скролл и закрытие Mini App */
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
+  touch-action: pan-x pan-y;
+  -webkit-touch-callout: none;
+}
+
+/* Блокируем перетаскивание изображений */
+img {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+  -webkit-touch-callout: none;
+}
+
+/* ========================================
    DTM BACKGROUND - ЯРЧЕ!
 ======================================== */
 

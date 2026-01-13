@@ -279,6 +279,8 @@ export default function CarDetailPage() {
                     src={photo}
                     alt={`${car.brand} ${car.model} - фото ${index + 1}`}
                     className="w-full h-full object-cover"
+                    loading={index === 0 ? "eager" : "lazy"}
+                    decoding="async"
                     draggable={false}
                     onError={() => handleImageError(index)}
                   />

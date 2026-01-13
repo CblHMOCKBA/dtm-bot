@@ -83,27 +83,103 @@ export default function EditCarPage() {
     }
   };
 
+  const MAX_PHOTOS = 20;
+
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
+    
+    const remainingSlots = MAX_PHOTOS - formData.photos.length;
+    if (remainingSlots <= 0) {
+      toast.error(`Максимум ${MAX_PHOTOS} фото`);
+      e.target.value = '';
+      return;
+    }
+    
+    const filesToUpload = Array.from(files).slice(0, remainingSlots);
+    if (filesToUpload.length < files.length) {
+      toast.warning(`Добавлено только ${filesToUpload.length} из ${files.length} фото (лимит ${MAX_PHOTOS})`);
+    }
+    
+    e.target.value = '';
     setUploadingPhoto(true);
+    
     try {
       const photoUrls: string[] = [];
-      for (const file of Array.from(files)) {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const { data, error } = await supabase.storage.from('car-photos').upload(fileName, file);
-        if (error) throw error;
-        const { data: { publicUrl } } = supabase.storage.from('car-photos').getPublicUrl(fileName);
-        photoUrls.push(publicUrl);
+      
+      // Загружаем последовательно по 2 файла
+      const BATCH_SIZE = 2;
+      for (let i = 0; i < filesToUpload.length; i += BATCH_SIZE) {
+        const batch = filesToUpload.slice(i, i + BATCH_SIZE);
+        
+        const batchPromises = batch.map(async (file) => {
+          // Сжимаем если файл большой
+          const processedFile = file.size > 500000 ? await compressImage(file) : file;
+          const fileExt = file.name.split('.').pop() || 'jpg';
+          const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+          const { error } = await supabase.storage.from('car-photos').upload(fileName, processedFile);
+          if (error) throw error;
+          const { data: { publicUrl } } = supabase.storage.from('car-photos').getPublicUrl(fileName);
+          return publicUrl;
+        });
+        
+        const batchUrls = await Promise.all(batchPromises);
+        photoUrls.push(...batchUrls);
+        
+        // Пауза между батчами
+        if (i + BATCH_SIZE < filesToUpload.length) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
       }
-      setFormData({ ...formData, photos: [...formData.photos, ...photoUrls].slice(0, 10) });
+      
+      setFormData(prev => ({ ...prev, photos: [...prev.photos, ...photoUrls].slice(0, MAX_PHOTOS) }));
       toast.success(`Загружено ${photoUrls.length} фото`);
     } catch (error: any) {
       toast.error('Ошибка: ' + error.message);
     } finally {
       setUploadingPhoto(false);
     }
+  };
+
+  // Сжатие изображения
+  const compressImage = (file: File): Promise<Blob> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+      
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        const maxSize = 1400;
+        let { width, height } = img;
+        
+        if (width > height && width > maxSize) {
+          height = (height * maxSize) / width;
+          width = maxSize;
+        } else if (height > maxSize) {
+          width = (width * maxSize) / height;
+          height = maxSize;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        canvas.toBlob((blob) => {
+          canvas.width = 0;
+          canvas.height = 0;
+          resolve(blob && blob.size < file.size ? blob : file);
+        }, 'image/jpeg', 0.75);
+      };
+      
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(file);
+      };
+      
+      img.src = objectUrl;
+    });
   };
 
   const handleRemovePhoto = (index: number) => {
@@ -313,7 +389,7 @@ export default function EditCarPage() {
         <div style={{ background: 'linear-gradient(135deg, rgba(15, 14, 24, 0.8), rgba(26, 25, 37, 0.6))', backdropFilter: 'blur(10px)', border: '1px solid rgba(204, 0, 58, 0.2)', borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
             <div style={{ width: '4px', height: '20px', background: '#CC003A', borderRadius: '2px' }}></div>
-            <h2 style={{ fontSize: '16px', fontWeight: 'bold', textTransform: 'uppercase' }}>Фотографии *</h2>
+            <h2 style={{ fontSize: '16px', fontWeight: 'bold', textTransform: 'uppercase' }}>Фотографии * <span style={{ fontSize: '12px', color: '#9CA3AF', fontWeight: 'normal' }}>({formData.photos.length}/{MAX_PHOTOS})</span></h2>
           </div>
           {formData.photos.length > 0 && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '12px' }}>
@@ -328,12 +404,12 @@ export default function EditCarPage() {
               ))}
             </div>
           )}
-          {formData.photos.length < 10 && (
+          {formData.photos.length < MAX_PHOTOS && (
             <label style={{ display: 'block' }}>
               <input type="file" multiple accept="image/*" onChange={handlePhotoUpload} disabled={uploadingPhoto} style={{ display: 'none' }} />
               <div style={{ width: '100%', padding: '12px', background: 'rgba(15, 14, 24, 0.6)', border: '2px solid rgba(204, 0, 58, 0.3)', borderRadius: '12px', cursor: uploadingPhoto ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '14px', fontWeight: 600, opacity: uploadingPhoto ? 0.5 : 1 }}>
                 <Upload style={{ width: '16px', height: '16px' }} />
-                {uploadingPhoto ? 'Загрузка...' : (formData.photos.length === 0 ? 'ДОБАВИТЬ ФОТО' : `ДОБАВИТЬ ЕЩЁ (${formData.photos.length}/10)`)}
+                {uploadingPhoto ? 'Загрузка...' : (formData.photos.length === 0 ? 'ДОБАВИТЬ ФОТО' : `ДОБАВИТЬ ЕЩЁ (${formData.photos.length}/${MAX_PHOTOS})`)}
               </div>
             </label>
           )}
