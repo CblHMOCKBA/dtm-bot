@@ -376,6 +376,18 @@ body::before {
   }
 }
 
+/* Элегантная анимация для новых авто */
+@keyframes shimmer {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scaleX(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
 .animate-fade-in {
   animation: fade-in 0.3s ease-out;
 }

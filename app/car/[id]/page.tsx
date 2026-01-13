@@ -5,7 +5,7 @@ import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Car } from '@/types';
 import { getTelegramWebApp, shareCarLink } from '@/lib/telegram';
-import { Share2, ArrowLeft, Phone, MessageCircle, Zap, Crown, Gauge, Settings2, Palette, Car as CarIcon } from 'lucide-react';
+import { Share2, ArrowLeft, Phone, MessageCircle, Zap, Gauge, Settings2, Palette, Car as CarIcon } from 'lucide-react';
 import { formatPrice, formatMileage } from '@/lib/formatters';
 import { useNavigation } from '@/components/NavigationProvider';
 import CarCard from '@/components/CarCard';
@@ -195,7 +195,6 @@ export default function CarDetailPage() {
     );
   }
 
-  const isPremiumBrand = ['Mercedes-Benz', 'BMW', 'Porsche', 'Audi', 'Ferrari', 'Lamborghini', 'Bentley', 'Rolls-Royce'].includes(car.brand);
   const isElectric = car.specs?.fuel === 'electric' || car.specs?.fuel === 'hybrid';
   const hasValidPhotos = car.photos && car.photos.length > 0 && car.photos.some((_, index) => !imageErrors.has(index));
   const isSold = car.status === 'sold';
@@ -288,19 +287,14 @@ export default function CarDetailPage() {
               ))}
             </div>
 
-            {/* Premium/Эко badges */}
-            <div className="absolute top-4 right-4 flex flex-col gap-2 items-end z-10">
-              {isPremiumBrand && (
-                <div className="premium-badge flex items-center gap-1">
-                  <Crown className="w-3 h-3" /> Premium
-                </div>
-              )}
-              {isElectric && (
+            {/* Эко бейдж для электрокаров */}
+            {isElectric && (
+              <div className="absolute top-4 right-4 z-10">
                 <div className="premium-badge flex items-center gap-1">
                   <Zap className="w-3 h-3" /> Эко
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </>
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center text-tg-hint bg-gradient-to-br from-tg-secondary-bg via-tg-bg to-tg-secondary-bg">

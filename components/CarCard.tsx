@@ -1,7 +1,7 @@
 'use client';
 
 import { Car } from '@/types';
-import { Sparkles, Heart } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { useFavorites } from '@/lib/useFavorites';
 import { getTelegramWebApp } from '@/lib/telegram';
 import { useState, useRef, useEffect } from 'react';
@@ -202,15 +202,16 @@ export default function CarCard({ car, onClick }: CarCardProps) {
           </>
         )}
 
-        {/* Для НЕ проданных авто - NEW бейдж */}
+        {/* Для новых авто - элегантная светящаяся линия сверху */}
         {!isSold && isNew && (
           <div 
-            className="absolute top-3 right-3 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg z-20 pointer-events-none"
-            style={{ backgroundColor: '#dc0000', animation: 'pulse-glow 2s ease-in-out infinite' }}
-          >
-            <Sparkles className="w-3.5 h-3.5 text-white" />
-            <span className="text-white text-xs font-bold uppercase tracking-wide">New</span>
-          </div>
+            className="absolute top-0 left-0 right-0 h-[2px] z-20 pointer-events-none"
+            style={{ 
+              background: 'linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.8), rgba(255, 255, 255, 0.9), rgba(255, 215, 0, 0.8), transparent)',
+              boxShadow: '0 0 10px rgba(255, 215, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.3)',
+              animation: 'shimmer 2s ease-in-out infinite'
+            }}
+          />
         )}
 
         {/* Кнопка избранного */}
