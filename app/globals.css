@@ -55,7 +55,7 @@ img {
 }
 
 /* ========================================
-   DTM BACKGROUND - ЯРЧЕ!
+   DTM BACKGROUND - ФИКСИРОВАННЫЙ ФОН
 ======================================== */
 
 body {
@@ -66,14 +66,23 @@ body {
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
-  
-  /* Фон DTM - изображение без сплошного цвета под ним */
-  background-color: #04030E; /* fallback если нет изображения */
+  background-color: #04030E;
+}
+
+/* Фоновое изображение через псевдоэлемент - работает на всех устройствах */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background-image: url('/dtm-background.jpg');
   background-size: cover;
-  background-position: center top;
+  background-position: center center;
   background-repeat: no-repeat;
-  background-attachment: fixed;
+  z-index: -2;
+  pointer-events: none;
 }
 
 body::before {
