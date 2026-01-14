@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Phone, MessageCircle, Clock } from 'lucide-react';
+import { Phone, MessageCircle, Clock, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import BottomNavigation from '@/components/BottomNavigation';
@@ -51,15 +51,11 @@ export default function ContactPage() {
             backdropFilter: 'blur(10px)'
           }}
         >
-          <div className="flex items-center justify-between px-4 py-3 border-b border-tg-hint/10">
-            <div className="w-10 h-10 bg-black/30 animate-pulse rounded-full"></div>
-            <div className="flex items-center gap-3">
-              <div className="space-y-2">
-                <div className="w-32 h-4 bg-black/30 rounded animate-pulse"></div>
-                <div className="w-24 h-3 bg-black/30 rounded animate-pulse"></div>
-              </div>
+          <div className="flex items-center justify-center px-4 py-3 border-b border-tg-hint/10">
+            <div className="space-y-2 text-center">
+              <div className="w-32 h-4 bg-black/30 rounded animate-pulse mx-auto"></div>
+              <div className="w-24 h-3 bg-black/30 rounded animate-pulse mx-auto"></div>
             </div>
-            <div className="w-10"></div>
           </div>
         </div>
         <div className="px-4 pt-4 space-y-3">
@@ -78,33 +74,21 @@ export default function ContactPage() {
         background: 'linear-gradient(135deg, rgba(15, 14, 24, 0.5), rgba(26, 25, 37, 0.4))',
         backdropFilter: 'blur(10px)'
       }}>
-        <div className="flex items-center justify-between px-4 py-3 border-b border-tg-hint/10">
-          <button
-            onClick={() => router.back()}
-            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-90 hover:border-white/30 hover:bg-white/10 group overflow-hidden"
-            aria-label="Назад"
-          >
-            <ArrowLeft className="w-5 h-5 text-white" />
-          </button>
-
-          {/* DTM логотип */}
-          <div className="flex items-center gap-2 flex-1 justify-center">
-            <div className="text-center">
-              <h1 
-                className="text-2xl font-black tracking-[0.15em]"
-                style={{
-                  fontFamily: 'Orbitron, sans-serif',
-                  color: 'white',
-                  textShadow: '0 0 20px rgba(255, 255, 255, 0.2)'
-                }}
-              >
-                DTM
-              </h1>
-              <p className="text-[9px] tracking-[0.2em] uppercase -mt-0.5" style={{ color: '#9CA3AF' }}>Обратная связь</p>
-            </div>
+        <div className="flex items-center justify-center px-4 py-3 border-b border-tg-hint/10">
+          {/* DTM логотип по центру */}
+          <div className="text-center">
+            <h1 
+              className="text-2xl font-black tracking-[0.15em]"
+              style={{
+                fontFamily: 'Orbitron, sans-serif',
+                color: 'white',
+                textShadow: '0 0 20px rgba(255, 255, 255, 0.2)'
+              }}
+            >
+              DTM
+            </h1>
+            <p className="text-[9px] tracking-[0.2em] uppercase -mt-0.5" style={{ color: '#9CA3AF' }}>Обратная связь</p>
           </div>
-
-          <div className="w-10"></div>
         </div>
       </div>
 
@@ -161,6 +145,32 @@ export default function ContactPage() {
               </svg>
             </div>
           </button>
+
+          {/* Сообщество */}
+          <a
+            href="https://t.me/dtm_auto"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-4 p-5 tg-card transition-all hover:scale-[1.02] active:scale-[0.98] group"
+          >
+            <div className="flex items-center justify-center w-16 h-16 rounded-2xl shadow-lg group-hover:shadow-purple-500/50 transition-all group-hover:scale-110"
+              style={{
+                background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)',
+                boxShadow: '0 4px 20px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+              }}
+            >
+              <Users className="w-8 h-8 text-white" />
+            </div>
+            <div className="flex-1">
+              <div className="text-sm text-tg-hint mb-1 uppercase tracking-wider">Сообщество</div>
+              <div className="text-xl font-bold">@dtm_auto</div>
+            </div>
+            <div className="text-tg-hint group-hover:text-purple-500 transition-colors">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </a>
 
           {/* Время работы */}
           <div className="tg-card p-6 space-y-4 relative overflow-hidden">

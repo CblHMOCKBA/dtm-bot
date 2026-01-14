@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Grid2X2, LayoutGrid } from 'lucide-react';
+import { Grid2X2, LayoutGrid } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Car as CarType } from '@/types';
@@ -84,17 +84,9 @@ export default function SoldPage() {
           backdropFilter: 'blur(10px)'
         }}
       >
-        <div className="flex items-center justify-between px-4 py-3">
-          <button
-            onClick={() => router.push('/')}
-            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-90 hover:border-white/30 hover:bg-white/10 group overflow-hidden"
-            aria-label="Назад"
-          >
-            <ArrowLeft className="w-5 h-5 text-white" />
-          </button>
-
-          {/* DTM логотип */}
-          <div className="flex-1 text-center">
+        <div className="flex items-center justify-center px-4 py-3">
+          {/* DTM логотип по центру */}
+          <div className="text-center">
             <h1 
               className="text-2xl font-black tracking-[0.15em]"
               style={{
@@ -107,8 +99,6 @@ export default function SoldPage() {
             </h1>
             <p className="text-[9px] tracking-[0.2em] uppercase -mt-0.5" style={{ color: '#9CA3AF' }}>Проданные автомобили</p>
           </div>
-
-          <div className="w-10"></div>
         </div>
 
         {/* Поиск + Кнопка вида */}

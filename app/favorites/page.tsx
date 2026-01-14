@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { Car } from '@/types';
 import { getTelegramWebApp } from '@/lib/telegram';
 import { useFavorites } from '@/lib/useFavorites';
-import { ArrowLeft, Phone, Heart, Trash2, Car as CarIcon, MessageCircle, X } from 'lucide-react';
+import { Phone, Heart, Trash2, Car as CarIcon, MessageCircle, X } from 'lucide-react';
 import { formatPrice } from '@/lib/formatters';
 import { useNavigation } from '@/components/NavigationProvider';
 import BottomNavigation from '@/components/BottomNavigation';
@@ -118,11 +118,6 @@ export default function FavoritesPage() {
     }
   };
 
-  const handleGoBack = () => {
-    navigateBack();
-    router.push('/');
-  };
-
   const handleCall = () => {
     window.open(`tel:${phoneNumber.replace(/\s+/g, '')}`, '_blank');
   };
@@ -146,16 +141,10 @@ export default function FavoritesPage() {
         }}
       >
         <div className="flex items-center justify-between px-4 py-3">
-          {/* Кнопка назад */}
-          <button
-            onClick={handleGoBack}
-            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:bg-white/10 group"
-            aria-label="Назад"
-          >
-            <ArrowLeft className="w-5 h-5 text-white" />
-          </button>
+          {/* Пустой блок для баланса */}
+          <div className="w-10"></div>
 
-          {/* Логотип DTM */}
+          {/* Логотип DTM по центру */}
           <h1 
             className="text-2xl font-black tracking-[0.15em]"
             style={{
@@ -217,7 +206,7 @@ export default function FavoritesPage() {
               Добавляйте понравившиеся авто в избранное
             </p>
             <button
-              onClick={handleGoBack}
+              onClick={() => router.push('/')}
               className="tg-button px-6 py-3 rounded-xl transition-all duration-300 active:scale-95 hover:scale-[1.02]"
             >
               Перейти в каталог

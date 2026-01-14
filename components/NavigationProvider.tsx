@@ -1,7 +1,8 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
-import { usePathname } from 'next/navigation';
+import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { getTelegramWebApp } from '@/lib/telegram';
 
 type NavigationDirection = 'forward' | 'back' | 'none';
 
@@ -10,6 +11,7 @@ interface NavigationContextType {
   setDirection: (dir: NavigationDirection) => void;
   navigateForward: () => void;
   navigateBack: () => void;
+  canGoBack: boolean;
 }
 
 const NavigationContext = createContext<NavigationContextType>({
@@ -17,6 +19,7 @@ const NavigationContext = createContext<NavigationContextType>({
   setDirection: () => {},
   navigateForward: () => {},
   navigateBack: () => {},
+  canGoBack: false,
 });
 
 export const useNavigation = () => useContext(NavigationContext);
@@ -51,6 +54,14 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   const [direction, setDirection] = useState<NavigationDirection>('none');
   const [prevPath, setPrevPath] = useState<string>('');
   const pathname = usePathname();
+  const router = useRouter();
+  
+  // Свайп-навигация
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
+  const isSwiping = useRef(false);
+  
+  const canGoBack = pathname !== '/';
 
   useEffect(() => {
     if (prevPath && prevPath !== pathname) {
@@ -62,7 +73,6 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
       } else if (currentLevel < prevLevel) {
         setDirection('back');
       } else {
-        // Тот же уровень - определяем по алфавиту или оставляем forward
         setDirection('forward');
       }
     }
@@ -76,6 +86,69 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(timer);
   }, [pathname, prevPath]);
 
+  // Обработка свайпа слева направо для навигации назад
+  useEffect(() => {
+    if (pathname === '/') return; // На главной странице свайп не нужен
+    
+    const handleTouchStart = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      touchStartX.current = touch.clientX;
+      touchStartY.current = touch.clientY;
+      isSwiping.current = false;
+      
+      // Свайп работает только если начинается с левого края экрана (первые 30px)
+      if (touch.clientX <= 30) {
+        isSwiping.current = true;
+      }
+    };
+    
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isSwiping.current) return;
+      
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - touchStartX.current;
+      const deltaY = Math.abs(touch.clientY - touchStartY.current);
+      
+      // Проверяем что свайп горизонтальный (deltaX больше deltaY)
+      if (deltaX > 50 && deltaY < 50) {
+        // Предотвращаем скролл во время свайпа
+        e.preventDefault();
+      }
+    };
+    
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (!isSwiping.current) return;
+      
+      const touch = e.changedTouches[0];
+      const deltaX = touch.clientX - touchStartX.current;
+      const deltaY = Math.abs(touch.clientY - touchStartY.current);
+      
+      // Свайп вправо (назад) - минимум 80px и горизонтальный
+      if (deltaX > 80 && deltaY < 100) {
+        // Вибрация при навигации
+        const tg = getTelegramWebApp();
+        if (tg?.HapticFeedback) {
+          tg.HapticFeedback.impactOccurred('light');
+        }
+        
+        setDirection('back');
+        router.push('/');
+      }
+      
+      isSwiping.current = false;
+    };
+    
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd, { passive: true });
+    
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [pathname, router]);
+
   const navigateForward = useCallback(() => {
     setDirection('forward');
   }, []);
@@ -85,7 +158,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <NavigationContext.Provider value={{ direction, setDirection, navigateForward, navigateBack }}>
+    <NavigationContext.Provider value={{ direction, setDirection, navigateForward, navigateBack, canGoBack }}>
       {children}
     </NavigationContext.Provider>
   );

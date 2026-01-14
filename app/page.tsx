@@ -181,32 +181,14 @@ export default function Home() {
 
   const totalSold = stats.sold + stats.manualSold;
 
-  // Функция закрытия Mini App
-  const handleClose = () => {
-    const tg = getTelegramWebApp();
-    if (tg) {
-      tg.close();
-    }
-  };
-
   return (
     <div className="min-h-screen pb-20">
       {/* Hero секция */}
       <div className="relative pt-2 pb-2">
         {/* Верхняя строка с кнопками */}
         <div className="flex items-center justify-between px-4 mb-2">
-          {/* Кнопка закрытия слева */}
-          <div className="flex items-center gap-2 w-[88px]">
-            <button
-              onClick={handleClose}
-              className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-white/30 hover:bg-white/10 group overflow-hidden"
-              aria-label="Закрыть"
-            >
-              <svg className="w-5 h-5 text-white/70 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+          {/* Пустой блок слева для баланса */}
+          <div className="w-[88px]"></div>
 
           {/* Логотип по центру */}
           <div className="text-center">

@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { getTelegramWebApp } from '@/lib/telegram';
-import { ArrowLeft, Phone, Users, MessageCircle, CheckCircle, Shield, Zap, Star, Award } from 'lucide-react';
-import Image from 'next/image';
+import { Phone, Users, MessageCircle, CheckCircle, Shield, Zap, Star, Award } from 'lucide-react';
 
 interface InfoPageData {
   id: string;
@@ -32,7 +31,7 @@ export default function InfoPageComponent({ pageId }: InfoPageProps) {
   const [loading, setLoading] = useState(true);
 
   const Icon = icons[pageId];
-  const contactUsername = process.env.NEXT_PUBLIC_CONTACT_USERNAME || 'FixeR050';
+  const contactUsername = process.env.NEXT_PUBLIC_CONTACT_USERNAME || 'dtm_moscow';
 
   useEffect(() => {
     const tg = getTelegramWebApp();
@@ -73,7 +72,7 @@ export default function InfoPageComponent({ pageId }: InfoPageProps) {
   };
 
   const handleGroup = () => {
-    window.open('https://t.me/Topgearmsc', '_blank');
+    window.open('https://t.me/dtm_auto', '_blank');
   };
 
   if (loading) {
@@ -96,30 +95,18 @@ export default function InfoPageComponent({ pageId }: InfoPageProps) {
     <div className="min-h-screen pb-6">
       {/* Шапка */}
       <div className="sticky top-0 bg-tg-bg/95 backdrop-blur-md z-10 border-b border-tg-hint/10">
-        <div className="flex items-center justify-between px-4 py-3">
-          <button
-            onClick={() => router.push('/')}
-            className="premium-back-button"
-            aria-label="Назад"
+        <div className="flex items-center justify-center px-4 py-3">
+          {/* DTM логотип по центру */}
+          <h1 
+            className="text-2xl font-black tracking-[0.15em]"
+            style={{
+              fontFamily: 'Orbitron, sans-serif',
+              color: 'white',
+              textShadow: '0 0 20px rgba(255, 255, 255, 0.2)'
+            }}
           >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-
-          <Image
-            src="/logo.png"
-            alt="Logo"
-            width={40}
-            height={40}
-            className="object-contain"
-            unoptimized
-          />
-
-          <button
-            onClick={() => window.open(`tel:${process.env.NEXT_PUBLIC_CONTACT_PHONE || '+79806790176'}`, '_blank')}
-            className="w-10 h-10 rounded-full bg-tg-accent/10 flex items-center justify-center text-tg-accent hover:bg-tg-accent/20 transition-colors"
-          >
-            <Phone className="w-5 h-5" />
-          </button>
+            DTM
+          </h1>
         </div>
       </div>
 
@@ -185,7 +172,7 @@ export default function InfoPageComponent({ pageId }: InfoPageProps) {
             className="w-full tg-button-secondary tg-button flex items-center justify-center gap-2 py-4"
           >
             <Users className="w-5 h-5" />
-            <span className="font-semibold">Наш Telegram</span>
+            <span className="font-semibold">Наше сообщество</span>
           </button>
         </div>
 

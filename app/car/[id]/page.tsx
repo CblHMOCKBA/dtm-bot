@@ -5,7 +5,7 @@ import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Car } from '@/types';
 import { getTelegramWebApp, shareCarLink } from '@/lib/telegram';
-import { Share2, ArrowLeft, Phone, MessageCircle, Zap, Gauge, Settings2, Palette, Car as CarIcon } from 'lucide-react';
+import { Share2, Phone, MessageCircle, Zap, Gauge, Settings2, Palette, Car as CarIcon } from 'lucide-react';
 import { formatPrice, formatMileage } from '@/lib/formatters';
 import { useNavigation } from '@/components/NavigationProvider';
 import CarCard from '@/components/CarCard';
@@ -147,15 +147,6 @@ export default function CarDetailPage() {
     });
   };
 
-  const handleGoBack = () => {
-    navigateBack();
-    if (fromSold) {
-      router.push('/sold');
-    } else {
-      router.push('/');
-    }
-  };
-
   const handleCarClick = (carId: string) => {
     navigateForward();
     router.push(`/car/${carId}`);
@@ -230,23 +221,18 @@ export default function CarDetailPage() {
         }}
       >
         <div className="flex items-center justify-between px-4 py-3">
-          <button
-            onClick={handleGoBack}
-            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-90 hover:border-white/30 hover:bg-white/10 group overflow-hidden"
-          >
-            <ArrowLeft className="w-5 h-5 text-white" />
-          </button>
+          {/* Пустой блок для баланса */}
+          <div className="w-10"></div>
 
-          <div className="absolute left-1/2 -translate-x-1/2">
-            <h1 
-              className="text-2xl font-black tracking-[0.15em]"
-              style={{
-                fontFamily: 'Orbitron, sans-serif',
-                color: 'white',
-                textShadow: '0 0 20px rgba(255, 255, 255, 0.2)'
-              }}
-            >DTM</h1>
-          </div>
+          {/* DTM по центру */}
+          <h1 
+            className="text-2xl font-black tracking-[0.15em]"
+            style={{
+              fontFamily: 'Orbitron, sans-serif',
+              color: 'white',
+              textShadow: '0 0 20px rgba(255, 255, 255, 0.2)'
+            }}
+          >DTM</h1>
 
           <button
             onClick={handleShare}
