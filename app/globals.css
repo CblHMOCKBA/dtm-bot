@@ -17,6 +17,9 @@
   --tg-theme-accent-hover: #E60044;
   --tg-theme-accent-dark: #990029;
   --tg-theme-white: #DDEAEB;
+  /* Telegram viewport */
+  --tg-viewport-height: 100vh;
+  --tg-viewport-stable-height: 100vh;
 }
 
 * {
@@ -27,6 +30,10 @@
 }
 
 /* ========================================
+   TELEGRAM MINI APP - FULLSCREEN & VIEWPORT
+======================================== */
+
+/* ========================================
    TELEGRAM MINI APP - БЛОКИРОВКА СВАЙПОВ
 ======================================== */
 
@@ -34,14 +41,24 @@ html {
   overscroll-behavior: none;
   overscroll-behavior-y: none;
   -webkit-overflow-scrolling: touch;
+  /* Используем viewport height от Telegram */
+  min-height: var(--tg-viewport-height, 100vh);
+  min-height: 100dvh;
 }
 
-html, body {
+body {
   /* Предотвращает "резиновый" скролл и закрытие Mini App */
   overscroll-behavior: none;
   overscroll-behavior-y: none;
   touch-action: pan-y;
   -webkit-touch-callout: none;
+  /* Safe area для устройств с вырезом */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  min-height: var(--tg-viewport-height, 100vh);
+  min-height: 100dvh;
 }
 
 /* Блокируем перетаскивание изображений */

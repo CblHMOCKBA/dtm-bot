@@ -113,6 +113,12 @@ export interface TelegramWebApp {
   requestFullscreen?(): void;
   exitFullscreen?(): void;
   isFullscreen?: boolean;
+  // Header/Background colors
+  setHeaderColor?(color: string): void;
+  setBackgroundColor?(color: string): void;
+  // Events
+  onEvent?(eventType: string, callback: () => void): void;
+  offEvent?(eventType: string, callback: () => void): void;
 }
 
 export interface TelegramUser {

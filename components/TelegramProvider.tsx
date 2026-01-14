@@ -9,7 +9,15 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
     const tg = getTelegramWebApp();
     if (tg) {
       // Мгновенно разворачиваем на весь экран
+      tg.ready();
       tg.expand();
+      
+      // Пробуем fullscreen (API 8.0+)
+      if (tg.requestFullscreen) {
+        try {
+          tg.requestFullscreen();
+        } catch (e) {}
+      }
     }
   }, []);
 
@@ -17,27 +25,35 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
     const tg = initTelegramWebApp();
     
     if (tg) {
-      // Повторный expand для надёжности
+      // Сообщаем Telegram что приложение готово
+      tg.ready();
+      
+      // Разворачиваем на весь экран
       tg.expand();
       
-      // Ещё раз через небольшую задержку (для старых версий Telegram)
-      setTimeout(() => tg.expand(), 100);
-      setTimeout(() => tg.expand(), 500);
+      // Повторные попытки expand для надёжности
+      setTimeout(() => tg.expand(), 50);
+      setTimeout(() => tg.expand(), 150);
+      setTimeout(() => tg.expand(), 300);
       
       // Пытаемся открыть в fullscreen (Telegram API 8.0+)
-      setTimeout(() => {
-        if (tg.requestFullscreen && !tg.isFullscreen) {
-          try {
-            tg.requestFullscreen();
-          } catch (e) {
-            // Fullscreen может быть недоступен
-          }
-        }
-      }, 200);
+      if (tg.requestFullscreen && !tg.isFullscreen) {
+        try {
+          tg.requestFullscreen();
+        } catch (e) {}
+      }
       
-      // Отключаем вертикальные свайпы Telegram (закрытие приложения) - API 7.7+
+      // Отключаем вертикальные свайпы (закрытие приложения) - API 7.7+
       if (tg.disableVerticalSwipes) {
         tg.disableVerticalSwipes();
+      }
+      
+      // Настраиваем header (прозрачный для fullscreen эффекта)
+      if (tg.setHeaderColor) {
+        tg.setHeaderColor('#04030E');
+      }
+      if (tg.setBackgroundColor) {
+        tg.setBackgroundColor('#04030E');
       }
       
       // Применяем тему Telegram
@@ -57,6 +73,20 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
       if (theme.button_color) root.style.setProperty('--tg-theme-button-color', theme.button_color);
       if (theme.button_text_color) root.style.setProperty('--tg-theme-button-text-color', theme.button_text_color);
       if (theme.secondary_bg_color) root.style.setProperty('--tg-theme-secondary-bg-color', theme.secondary_bg_color);
+      
+      // Устанавливаем CSS переменные для viewport
+      const setViewportHeight = () => {
+        const vh = tg.viewportStableHeight || tg.viewportHeight || window.innerHeight;
+        document.documentElement.style.setProperty('--tg-viewport-height', `${vh}px`);
+        document.documentElement.style.setProperty('--tg-viewport-stable-height', `${tg.viewportStableHeight || vh}px`);
+      };
+      
+      setViewportHeight();
+      
+      // Слушаем изменения viewport
+      if (tg.onEvent) {
+        tg.onEvent('viewportChanged', setViewportHeight);
+      }
     }
 
     // Блокируем свайп-закрытие когда скролл вверху страницы

@@ -1,14 +1,23 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { TelegramProvider } from '@/components/TelegramProvider'
 import { ToastProvider } from '@/components/ToastProvider'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { NavigationProvider } from '@/components/NavigationProvider'
 import PageTransition from '@/components/PageTransition'
+import Script from 'next/script'
 
 export const metadata: Metadata = {
   title: 'DTM',
   description: 'Премиальный автосалон DTM в Москве',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
 }
 
 export default function RootLayout({
@@ -18,6 +27,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru">
+      <head>
+        {/* Telegram Web App SDK */}
+        <Script 
+          src="https://telegram.org/js/telegram-web-app.js" 
+          strategy="beforeInteractive"
+        />
+      </head>
       <body>
         <ErrorBoundary>
           <TelegramProvider>
