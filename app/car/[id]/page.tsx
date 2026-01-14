@@ -404,7 +404,13 @@ export default function CarDetailPage() {
 
         {/* Описание */}
         {car.description && car.description.trim() && (
-          <div className="pt-4">
+          <div 
+            className="pt-4 mt-4 -mx-4 px-4 pb-4"
+            style={{
+              background: 'linear-gradient(180deg, rgba(4, 3, 14, 0.7) 0%, rgba(4, 3, 14, 0.95) 20%, rgba(4, 3, 14, 0.98) 100%)',
+              borderRadius: '16px 16px 0 0',
+            }}
+          >
             <h3 className="text-base font-bold mb-2">Описание</h3>
             <p className="text-sm text-tg-hint leading-relaxed whitespace-pre-wrap">
               {car.description}

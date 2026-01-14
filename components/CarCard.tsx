@@ -11,6 +11,75 @@ interface CarCardProps {
   onClick?: () => void;
 }
 
+// Создаём URL для thumbnail (Supabase image transformation)
+const getThumbnailUrl = (url: string): string => {
+  // Supabase Storage transformation: /object/public/ -> /render/image/public/ + params
+  if (url.includes('supabase.co/storage/v1/object/public/')) {
+    return url.replace(
+      '/storage/v1/object/public/',
+      '/storage/v1/render/image/public/'
+    ) + '?width=50&quality=20';
+  }
+  return url;
+};
+
+// Компонент для фото с blur-up эффектом
+function BlurUpImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [showPlaceholder, setShowPlaceholder] = useState(true);
+  const thumbnailUrl = getThumbnailUrl(src);
+  
+  return (
+    <div className="relative w-full h-full overflow-hidden">
+      {/* Placeholder - размытый thumbnail или градиент */}
+      {showPlaceholder && (
+        <div className="absolute inset-0 z-0">
+          {/* Пробуем загрузить thumbnail */}
+          <img
+            src={thumbnailUrl}
+            alt=""
+            className="w-full h-full object-cover blur-xl scale-110"
+            onError={(e) => {
+              // Если thumbnail не загрузился - показываем градиент
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
+          {/* Fallback градиент */}
+          <div 
+            className="absolute inset-0 bg-gradient-to-br from-gray-800 via-gray-900 to-black animate-pulse"
+            style={{ 
+              background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)',
+            }}
+          />
+          {/* Shimmer эффект */}
+          <div 
+            className="absolute inset-0"
+            style={{
+              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent)',
+              animation: 'shimmer-slide 1.5s infinite',
+            }}
+          />
+        </div>
+      )}
+      
+      {/* Основное фото */}
+      <img
+        src={src}
+        alt={alt}
+        className={`w-full h-full object-cover transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'} ${className || ''}`}
+        loading="lazy"
+        decoding="async"
+        draggable={false}
+        onLoad={() => {
+          setIsLoaded(true);
+          // Убираем placeholder с небольшой задержкой для плавности
+          setTimeout(() => setShowPlaceholder(false), 300);
+        }}
+      />
+    </div>
+  );
+}
+
 export default function CarCard({ car, onClick }: CarCardProps) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const [isAnimating, setIsAnimating] = useState(false);
@@ -151,19 +220,21 @@ export default function CarCard({ car, onClick }: CarCardProps) {
                   key={index} 
                   className="photo-gallery-item h-full"
                 >
-                  {/* Первое фото грузится сразу, остальные - при взаимодействии или lazy */}
+                  {/* Первое фото грузится сразу с blur-up, остальные - при взаимодействии */}
                   {index === 0 || hasInteracted ? (
-                    <img
+                    <BlurUpImage
                       src={photo}
                       alt={`${car.brand} ${car.model} - фото ${index + 1}`}
-                      className="w-full h-full object-cover"
-                      loading={index === 0 ? "eager" : "lazy"}
-                      decoding="async"
-                      draggable={false}
                     />
                   ) : (
-                    <div className="w-full h-full bg-tg-secondary-bg flex items-center justify-center">
-                      <div className="w-6 h-6 border-2 border-tg-accent/30 border-t-tg-accent rounded-full animate-spin"></div>
+                    <div className="w-full h-full bg-gradient-to-br from-gray-800 via-gray-900 to-black">
+                      <div 
+                        className="w-full h-full"
+                        style={{
+                          background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent)',
+                          animation: 'shimmer-slide 1.5s infinite',
+                        }}
+                      />
                     </div>
                   )}
                 </div>
