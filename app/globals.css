@@ -44,7 +44,7 @@ html, body {
   -webkit-touch-callout: none;
 }
 
-/* Блокируем перетаскивание изображений и свайп-закрытие на них */
+/* Блокируем перетаскивание изображений */
 img {
   -webkit-user-drag: none;
   -khtml-user-drag: none;
@@ -52,23 +52,21 @@ img {
   -o-user-drag: none;
   user-drag: none;
   -webkit-touch-callout: none;
-  touch-action: pan-y pinch-zoom;
 }
 
-/* Галереи фото - разрешаем только вертикальный скролл */
-.photo-gallery,
+/* Галереи фото - разрешаем горизонтальный свайп */
+.photo-gallery {
+  touch-action: pan-x pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
 .photo-gallery-item {
-  touch-action: pan-y;
+  touch-action: pan-x pan-y;
 }
 
-/* Карточки машин - разрешаем только вертикальный скролл */
-.tg-card {
-  touch-action: pan-y;
-}
-
-/* Контейнер с фото на странице машины */
-.aspect-\[4\/3\] {
-  touch-action: pan-y;
+.photo-gallery-item img {
+  touch-action: pan-x pan-y;
+  pointer-events: auto;
 }
 
 /* ========================================
