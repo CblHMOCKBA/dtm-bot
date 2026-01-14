@@ -24,6 +24,17 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
       setTimeout(() => tg.expand(), 100);
       setTimeout(() => tg.expand(), 500);
       
+      // Пытаемся открыть в fullscreen (Telegram API 8.0+)
+      setTimeout(() => {
+        if (tg.requestFullscreen && !tg.isFullscreen) {
+          try {
+            tg.requestFullscreen();
+          } catch (e) {
+            // Fullscreen может быть недоступен
+          }
+        }
+      }, 200);
+      
       // Отключаем вертикальные свайпы Telegram (закрытие приложения) - API 7.7+
       if (tg.disableVerticalSwipes) {
         tg.disableVerticalSwipes();

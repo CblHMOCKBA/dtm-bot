@@ -181,20 +181,28 @@ export default function Home() {
 
   const totalSold = stats.sold + stats.manualSold;
 
+  // Функция закрытия Mini App
+  const handleClose = () => {
+    const tg = getTelegramWebApp();
+    if (tg) {
+      tg.close();
+    }
+  };
+
   return (
     <div className="min-h-screen pb-20">
       {/* Hero секция */}
       <div className="relative pt-2 pb-2">
         {/* Верхняя строка с кнопками */}
         <div className="flex items-center justify-between px-4 mb-2">
-          {/* Telegram кнопка слева */}
+          {/* Кнопка закрытия слева */}
           <button
-            onClick={() => window.open('https://t.me/dtm_moscow', '_blank')}
-            className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-[#29B6F6]/50 hover:bg-white/10 group overflow-hidden"
-            aria-label="Telegram"
+            onClick={handleClose}
+            className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-white/30 hover:bg-white/10 group overflow-hidden"
+            aria-label="Закрыть"
           >
-            <svg className="w-[18px] h-[18px] text-white group-hover:text-[#29B6F6] transition-colors" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+            <svg className="w-5 h-5 text-white/70 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
 
@@ -218,14 +226,25 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Телефон справа */}
-          <button
-            onClick={handleCall}
-            className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-tg-accent/50 hover:bg-white/10 group overflow-hidden"
-            aria-label="Позвонить"
-          >
-            <Phone className="w-[18px] h-[18px] text-white group-hover:text-tg-accent transition-colors" />
-          </button>
+          {/* Telegram + Телефон справа */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => window.open('https://t.me/dtm_moscow', '_blank')}
+              className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-[#29B6F6]/50 hover:bg-white/10 group overflow-hidden"
+              aria-label="Telegram"
+            >
+              <svg className="w-[18px] h-[18px] text-white group-hover:text-[#29B6F6] transition-colors" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+              </svg>
+            </button>
+            <button
+              onClick={handleCall}
+              className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-tg-accent/50 hover:bg-white/10 group overflow-hidden"
+              aria-label="Позвонить"
+            >
+              <Phone className="w-[18px] h-[18px] text-white group-hover:text-tg-accent transition-colors" />
+            </button>
+          </div>
         </div>
 
         {/* Подзаголовок */}

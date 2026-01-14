@@ -109,6 +109,10 @@ export interface TelegramWebApp {
   // Telegram API 7.7+
   disableVerticalSwipes?(): void;
   enableVerticalSwipes?(): void;
+  // Telegram API 8.0+
+  requestFullscreen?(): void;
+  exitFullscreen?(): void;
+  isFullscreen?: boolean;
 }
 
 export interface TelegramUser {
