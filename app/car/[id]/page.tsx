@@ -124,9 +124,16 @@ export default function CarDetailPage() {
     }
   };
 
-  // ИСПРАВЛЕНО: Используем надёжную функцию отправки
+  // Обработчик кнопки "Написать"
   const handleContact = () => {
     if (!car) return;
+    
+    const tg = getTelegramWebApp();
+    
+    // Haptic feedback при нажатии
+    if (tg?.HapticFeedback) {
+      tg.HapticFeedback.impactOccurred('medium');
+    }
     
     const priceFormatted = new Intl.NumberFormat('ru-RU').format(car.price) + ' ₽';
     const mileageFormatted = car.mileage.toLocaleString('ru-RU') + ' км';
@@ -140,12 +147,30 @@ export default function CarDetailPage() {
 
 Хочу узнать подробности!`;
 
-    sendTelegramMessage(telegramUsername, message);
+    const success = sendTelegramMessage(telegramUsername, message);
+    
+    if (!success) {
+      console.error('[Contact] Не удалось отправить сообщение');
+    }
   };
 
-  // ИСПРАВЛЕНО: Используем надёжную функцию звонка
+  // Обработчик кнопки "Позвонить"
   const handleCall = () => {
-    makePhoneCall(phoneNumber);
+    const tg = getTelegramWebApp();
+    
+    // Haptic feedback при нажатии
+    if (tg?.HapticFeedback) {
+      tg.HapticFeedback.impactOccurred('medium');
+    }
+    
+    const success = makePhoneCall(phoneNumber);
+    
+    if (!success) {
+      console.error('[Call] Не удалось совершить звонок');
+      if (tg?.showAlert) {
+        tg.showAlert('Не удалось совершить звонок. Проверьте настройки устройства.');
+      }
+    }
   };
 
   const handleShare = () => {

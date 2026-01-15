@@ -1,8 +1,8 @@
 import { getTelegramWebApp } from './telegram';
 
 /**
- * Надёжная отправка сообщения в Telegram
- * Использует правильный метод в зависимости от контекста
+ * Отправка сообщения в Telegram
+ * Использует ТОЛЬКО методы, которые не закрывают Mini App
  */
 export function sendTelegramMessage(username: string, message: string): boolean {
   const tg = getTelegramWebApp();
@@ -11,7 +11,8 @@ export function sendTelegramMessage(username: string, message: string): boolean 
   
   console.log('[TG Message] Отправка сообщения:', { username, messageLength: message.length });
   
-  // Способ 1: Telegram WebApp API (предпочтительный)
+  // ОСНОВНОЙ способ: Telegram WebApp API
+  // Это единственный надёжный метод, который не закрывает Mini App
   if (tg?.openTelegramLink) {
     try {
       console.log('[TG Message] Используем openTelegramLink');
@@ -25,30 +26,15 @@ export function sendTelegramMessage(username: string, message: string): boolean 
       return true;
     } catch (error) {
       console.error('[TG Message] openTelegramLink failed:', error);
+      // Если не удалось, показываем пользователю ошибку
+      if (tg.showAlert) {
+        tg.showAlert('Не удалось открыть чат. Попробуйте позже.');
+      }
+      return false;
     }
   }
   
-  // Способ 2: Прямой переход (fallback)
-  try {
-    console.log('[TG Message] Fallback: location.href');
-    window.location.href = tgLink;
-    return true;
-  } catch (error) {
-    console.error('[TG Message] location.href failed:', error);
-  }
-  
-  // Способ 3: window.open (последний резерв)
-  try {
-    console.log('[TG Message] Last resort: window.open');
-    const newWindow = window.open(tgLink, '_blank');
-    if (newWindow) {
-      return true;
-    }
-  } catch (error) {
-    console.error('[TG Message] window.open failed:', error);
-  }
-  
-  console.error('[TG Message] Все методы отправки не сработали');
+  console.error('[TG Message] Telegram WebApp API недоступен');
   return false;
 }
 
@@ -59,45 +45,69 @@ export function openTelegramChat(username: string): boolean {
   const tg = getTelegramWebApp();
   const tgLink = `https://t.me/${username}`;
   
+  console.log('[TG Chat] Открытие чата:', username);
+  
   if (tg?.openTelegramLink) {
     try {
       tg.openTelegramLink(tgLink);
+      
+      if (tg.HapticFeedback) {
+        tg.HapticFeedback.impactOccurred('light');
+      }
+      
       return true;
     } catch (error) {
       console.error('[TG Chat] openTelegramLink failed:', error);
+      if (tg.showAlert) {
+        tg.showAlert('Не удалось открыть чат. Попробуйте позже.');
+      }
+      return false;
     }
   }
   
-  try {
-    window.location.href = tgLink;
-    return true;
-  } catch (error) {
-    console.error('[TG Chat] location.href failed:', error);
-  }
-  
+  console.error('[TG Chat] Telegram WebApp API недоступен');
   return false;
 }
 
 /**
- * Позвонить по номеру
+ * Позвонить по номеру телефона
+ * Использует метод, который работает в Telegram Mini App
  */
 export function makePhoneCall(phoneNumber: string): boolean {
   const phoneClean = phoneNumber.replace(/[\s()-]/g, '');
   const telLink = `tel:${phoneClean}`;
+  const tg = getTelegramWebApp();
   
-  try {
-    window.location.href = telLink;
-    return true;
-  } catch (error) {
-    console.error('[Phone] Call failed:', error);
-    
+  console.log('[Phone] Звонок на номер:', phoneClean);
+  
+  // Способ 1: Telegram WebApp API для открытия внешних ссылок
+  if (tg?.openLink) {
     try {
-      window.open(telLink, '_blank');
+      console.log('[Phone] Используем openLink');
+      tg.openLink(telLink);
+      
+      if (tg.HapticFeedback) {
+        tg.HapticFeedback.impactOccurred('light');
+      }
+      
       return true;
-    } catch (e) {
-      console.error('[Phone] window.open failed:', e);
+    } catch (error) {
+      console.error('[Phone] openLink failed:', error);
     }
   }
   
+  // Способ 2: window.open для non-Telegram окружения
+  try {
+    console.log('[Phone] Fallback: window.open');
+    const callWindow = window.open(telLink, '_blank');
+    if (callWindow || navigator.userAgent.includes('Mobile')) {
+      // На мобильных устройствах window.open может вернуть null, но всё равно сработать
+      return true;
+    }
+  } catch (error) {
+    console.error('[Phone] window.open failed:', error);
+  }
+  
+  console.error('[Phone] Не удалось совершить звонок');
   return false;
 }
