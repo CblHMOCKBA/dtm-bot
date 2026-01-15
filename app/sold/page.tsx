@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Grid2X2, LayoutGrid } from 'lucide-react';
+import { Grid2X2, LayoutGrid, Phone, MessageCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Car as CarType } from '@/types';
@@ -18,6 +18,8 @@ export default function SoldPage() {
   const [totalCount, setTotalCount] = useState(0);
   const [viewMode, setViewMode] = useState<'single' | 'double'>('single');
   const [searchQuery, setSearchQuery] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('+7 980 679 0176');
+  const [telegramUsername, setTelegramUsername] = useState('dtm_moscow');
 
   useEffect(() => {
     const tg = getTelegramWebApp();
@@ -28,6 +30,7 @@ export default function SoldPage() {
     }
 
     loadSoldCars();
+    loadSettings();
 
     return () => {
       if (tg) {
@@ -39,6 +42,25 @@ export default function SoldPage() {
   useEffect(() => {
     applySearch();
   }, [cars, searchQuery]);
+
+  const loadSettings = async () => {
+    try {
+      const { data: settings } = await supabase
+        .from('settings')
+        .select('phone, telegram')
+        .eq('id', 1)
+        .single();
+
+      if (settings?.phone && settings.phone.trim()) {
+        setPhoneNumber(settings.phone);
+      }
+      if (settings?.telegram && settings.telegram.trim()) {
+        setTelegramUsername(settings.telegram.replace('@', ''));
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    }
+  };
 
   const loadSoldCars = async () => {
     try {
@@ -75,6 +97,14 @@ export default function SoldPage() {
     }
   };
 
+  const handleCall = () => {
+    window.open(`tel:${phoneNumber.replace(/\s+/g, '')}`, '_blank');
+  };
+
+  const handleTelegram = () => {
+    window.open(`https://t.me/${telegramUsername}`, '_blank');
+  };
+
   return (
     <div className="min-h-screen pb-20">
       {/* Шапка с DTM брендингом */}
@@ -84,7 +114,16 @@ export default function SoldPage() {
           backdropFilter: 'blur(10px)'
         }}
       >
-        <div className="flex items-center justify-center px-4 py-3">
+        <div className="flex items-center justify-between px-4 py-3">
+          {/* Кнопка Telegram слева */}
+          <button
+            onClick={handleTelegram}
+            className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-tg-accent/50 hover:bg-white/10 group"
+            aria-label="Написать в Telegram"
+          >
+            <MessageCircle className="w-5 h-5 text-white group-hover:text-tg-accent transition-colors" />
+          </button>
+
           {/* DTM логотип по центру */}
           <div className="text-center">
             <h1 
@@ -99,6 +138,15 @@ export default function SoldPage() {
             </h1>
             <p className="text-[9px] tracking-[0.2em] uppercase -mt-0.5" style={{ color: '#9CA3AF' }}>Проданные автомобили</p>
           </div>
+
+          {/* Кнопка звонка справа */}
+          <button
+            onClick={handleCall}
+            className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-tg-accent/50 hover:bg-white/10 group"
+            aria-label="Позвонить"
+          >
+            <Phone className="w-5 h-5 text-white group-hover:text-tg-accent transition-colors" />
+          </button>
         </div>
 
         {/* Поиск + Кнопка вида */}

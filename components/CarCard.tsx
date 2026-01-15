@@ -308,7 +308,7 @@ export default function CarCard({ car, onClick }: CarCardProps) {
 
       {/* Контент */}
       <div className="p-3 space-y-2">
-        <h3 className="font-bold text-base line-clamp-1">
+        <h3 className="font-bold text-base text-white line-clamp-1">
           {car.brand} {car.model}
         </h3>
 

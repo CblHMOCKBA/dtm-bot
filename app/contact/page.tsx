@@ -42,6 +42,14 @@ export default function ContactPage() {
     }
   };
 
+  const handleCall = () => {
+    window.open(`tel:${phoneNumber.replace(/\s+/g, '').replace(/[()]/g, '').replace(/-/g, '')}`, '_blank');
+  };
+
+  const handleTelegram = () => {
+    window.open(`https://t.me/${telegramUsername}`, '_blank');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen pb-20 relative">
@@ -74,7 +82,16 @@ export default function ContactPage() {
         background: 'linear-gradient(135deg, rgba(15, 14, 24, 0.5), rgba(26, 25, 37, 0.4))',
         backdropFilter: 'blur(10px)'
       }}>
-        <div className="flex items-center justify-center px-4 py-3 border-b border-tg-hint/10">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-tg-hint/10">
+          {/* Кнопка Telegram слева */}
+          <button
+            onClick={handleTelegram}
+            className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-tg-accent/50 hover:bg-white/10 group"
+            aria-label="Написать в Telegram"
+          >
+            <MessageCircle className="w-5 h-5 text-white group-hover:text-tg-accent transition-colors" />
+          </button>
+
           {/* DTM логотип по центру */}
           <div className="text-center">
             <h1 
@@ -89,6 +106,15 @@ export default function ContactPage() {
             </h1>
             <p className="text-[9px] tracking-[0.2em] uppercase -mt-0.5" style={{ color: '#9CA3AF' }}>Обратная связь</p>
           </div>
+
+          {/* Кнопка звонка справа */}
+          <button
+            onClick={handleCall}
+            className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-tg-accent/50 hover:bg-white/10 group"
+            aria-label="Позвонить"
+          >
+            <Phone className="w-5 h-5 text-white group-hover:text-tg-accent transition-colors" />
+          </button>
         </div>
       </div>
 
@@ -113,7 +139,7 @@ export default function ContactPage() {
             </div>
             <div className="flex-1">
               <div className="text-sm text-tg-hint mb-1 uppercase tracking-wider">Написать в Telegram</div>
-              <div className="text-xl font-bold">@{telegramUsername}</div>
+              <div className="text-xl font-bold text-white">@{telegramUsername}</div>
             </div>
             <div className="text-tg-hint group-hover:text-blue-500 transition-colors">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -137,7 +163,7 @@ export default function ContactPage() {
             </div>
             <div className="flex-1">
               <div className="text-sm text-tg-hint mb-1 uppercase tracking-wider">Позвонить</div>
-              <div className="text-xl font-bold">{phoneNumber}</div>
+              <div className="text-xl font-bold text-white">{phoneNumber}</div>
             </div>
             <div className="text-tg-hint group-hover:text-green-500 transition-colors">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -163,7 +189,7 @@ export default function ContactPage() {
             </div>
             <div className="flex-1">
               <div className="text-sm text-tg-hint mb-1 uppercase tracking-wider">Сообщество</div>
-              <div className="text-xl font-bold">@dtm_auto</div>
+              <div className="text-xl font-bold text-white">@dtm_auto</div>
             </div>
             <div className="text-tg-hint group-hover:text-purple-500 transition-colors">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,7 +210,7 @@ export default function ContactPage() {
               >
                 <Clock className="w-6 h-6 text-tg-accent" />
               </div>
-              <h3 className="text-xl font-bold brand-name uppercase tracking-wider">Время работы</h3>
+              <h3 className="text-xl font-bold text-white brand-name uppercase tracking-wider">Время работы</h3>
             </div>
             
             <div className="space-y-3 relative z-10">
@@ -194,7 +220,7 @@ export default function ContactPage() {
                 }}
               >
                 <span className="text-tg-hint font-medium uppercase text-sm">Пн - Пт</span>
-                <span className="font-bold text-lg">09:00 - 21:00</span>
+                <span className="font-bold text-lg text-white">09:00 - 21:00</span>
               </div>
               <div className="flex justify-between items-center p-3 rounded-lg transition-colors"
                 style={{
@@ -202,7 +228,7 @@ export default function ContactPage() {
                 }}
               >
                 <span className="text-tg-hint font-medium uppercase text-sm">Сб - Вс</span>
-                <span className="font-bold text-lg">10:00 - 20:00</span>
+                <span className="font-bold text-lg text-white">10:00 - 20:00</span>
               </div>
             </div>
           </div>

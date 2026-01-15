@@ -20,6 +20,7 @@ export default function CarDetailPage() {
   const [loading, setLoading] = useState(true);
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
   const [phoneNumber, setPhoneNumber] = useState('+7 980 679 0176');
+  const [telegramUsername, setTelegramUsername] = useState('dtm_moscow');
   const scrollRef = useRef<HTMLDivElement>(null);
   
   // Drag state для галереи
@@ -107,12 +108,15 @@ export default function CarDetailPage() {
 
       const { data: settings } = await supabase
         .from('settings')
-        .select('phone')
+        .select('phone, telegram')
         .eq('id', 1)
         .single();
 
       if (settings?.phone && settings.phone.trim()) {
         setPhoneNumber(settings.phone);
+      }
+      if (settings?.telegram && settings.telegram.trim()) {
+        setTelegramUsername(settings.telegram.replace('@', ''));
       }
     } catch (error) {
       console.error('Error loading car:', error);
@@ -131,6 +135,10 @@ export default function CarDetailPage() {
 
   const handleCall = () => {
     window.open(`tel:${phoneNumber.replace(/\s+/g, '')}`, '_blank');
+  };
+
+  const handleTelegram = () => {
+    window.open(`https://t.me/${telegramUsername}`, '_blank');
   };
 
   const handleShare = () => {
@@ -221,8 +229,14 @@ export default function CarDetailPage() {
         }}
       >
         <div className="flex items-center justify-between px-4 py-3">
-          {/* Пустой блок для баланса */}
-          <div className="w-10"></div>
+          {/* Кнопка Telegram слева */}
+          <button
+            onClick={handleTelegram}
+            className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-tg-accent/50 hover:bg-white/10 group"
+            aria-label="Написать в Telegram"
+          >
+            <MessageCircle className="w-5 h-5 text-white group-hover:text-tg-accent transition-colors" />
+          </button>
 
           {/* DTM по центру */}
           <h1 
@@ -234,11 +248,13 @@ export default function CarDetailPage() {
             }}
           >DTM</h1>
 
+          {/* Кнопка звонка справа */}
           <button
-            onClick={handleShare}
-            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-90 hover:border-white/30 hover:bg-white/10 group overflow-hidden"
+            onClick={handleCall}
+            className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-tg-accent/50 hover:bg-white/10 group"
+            aria-label="Позвонить"
           >
-            <Share2 className="w-5 h-5 text-white" />
+            <Phone className="w-5 h-5 text-white group-hover:text-tg-accent transition-colors" />
           </button>
         </div>
       </div>
@@ -291,7 +307,7 @@ export default function CarDetailPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
-            <p className="text-sm mt-4 font-bold uppercase tracking-wider">Фото скоро появится</p>
+            <p className="text-sm mt-4 font-bold uppercase tracking-wider text-white">Фото скоро появится</p>
           </div>
         )}
       </div>
@@ -300,19 +316,19 @@ export default function CarDetailPage() {
       <div className="px-4 pt-4 space-y-4">
         {/* Название и год */}
         <div>
-          <h1 className="text-xl font-bold">
+          <h1 className="text-xl font-bold text-white">
             {car.brand} {car.model}, {car.year}
           </h1>
         </div>
 
         {/* Цена */}
-        <div className="text-3xl font-bold">
+        <div className="text-3xl font-bold text-white">
           {formatPrice(car.price)}
         </div>
 
         {/* Компактные характеристики - сетка 2x2 как на auto.ru */}
         <div className="border-t border-tg-hint/20 pt-4">
-          <h3 className="text-base font-bold mb-3">Характеристики</h3>
+          <h3 className="text-base font-bold text-white mb-3">Характеристики</h3>
           
           <div className="grid grid-cols-2 gap-x-4 gap-y-3">
             {/* Мощность */}
@@ -322,7 +338,7 @@ export default function CarDetailPage() {
                   <Gauge className="w-4 h-4 text-tg-accent" />
                 </div>
                 <div>
-                  <div className="font-bold text-sm">{car.specs.power}</div>
+                  <div className="font-bold text-sm text-white">{car.specs.power}</div>
                   <div className="text-xs text-tg-hint">
                     {car.specs?.engine && `${car.specs.engine}, `}
                     {car.specs?.fuel || 'Бензин'}
@@ -338,7 +354,7 @@ export default function CarDetailPage() {
                   <Settings2 className="w-4 h-4 text-tg-accent" />
                 </div>
                 <div>
-                  <div className="font-bold text-sm">{getTransmissionLabel(car.specs.transmission)}</div>
+                  <div className="font-bold text-sm text-white">{getTransmissionLabel(car.specs.transmission)}</div>
                   <div className="text-xs text-tg-hint">коробка</div>
                 </div>
               </div>
@@ -351,7 +367,7 @@ export default function CarDetailPage() {
                   <CarIcon className="w-4 h-4 text-tg-accent" />
                 </div>
                 <div>
-                  <div className="font-bold text-sm">{getDriveLabel(car.specs.drive)}</div>
+                  <div className="font-bold text-sm text-white">{getDriveLabel(car.specs.drive)}</div>
                   <div className="text-xs text-tg-hint">привод</div>
                 </div>
               </div>
@@ -364,7 +380,7 @@ export default function CarDetailPage() {
                   <Palette className="w-4 h-4 text-tg-accent" />
                 </div>
                 <div>
-                  <div className="font-bold text-sm">{car.specs.color}</div>
+                  <div className="font-bold text-sm text-white">{car.specs.color}</div>
                   <div className="text-xs text-tg-hint">цвет</div>
                 </div>
               </div>
@@ -376,13 +392,13 @@ export default function CarDetailPage() {
             {car.specs?.body_type && (
               <div className="flex justify-between py-2 border-b border-tg-hint/10">
                 <span className="text-tg-hint">Кузов</span>
-                <span className="font-medium">{car.specs.body_type}</span>
+                <span className="font-medium text-white">{car.specs.body_type}</span>
               </div>
             )}
             {car.mileage > 0 && (
               <div className="flex justify-between py-2 border-b border-tg-hint/10">
                 <span className="text-tg-hint">Пробег</span>
-                <span className="font-medium">{formatMileage(car.mileage)}</span>
+                <span className="font-medium text-white">{formatMileage(car.mileage)}</span>
               </div>
             )}
           </div>
@@ -397,7 +413,7 @@ export default function CarDetailPage() {
               borderRadius: '16px 16px 0 0',
             }}
           >
-            <h3 className="text-base font-bold mb-2">Описание</h3>
+            <h3 className="text-base font-bold text-white mb-2">Описание</h3>
             <p className="text-sm text-tg-hint leading-relaxed whitespace-pre-wrap">
               {car.description}
             </p>
@@ -407,7 +423,7 @@ export default function CarDetailPage() {
         {/* Другие автомобили */}
         {otherCars.length > 0 && (
           <div className="border-t border-tg-hint/20 pt-4">
-            <h3 className="text-base font-bold mb-3">Другие автомобили</h3>
+            <h3 className="text-base font-bold text-white mb-3">Другие автомобили</h3>
             <div className="grid grid-cols-1 gap-4">
               {otherCars.map((otherCar) => (
                 <CarCard 

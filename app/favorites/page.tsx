@@ -18,6 +18,7 @@ export default function FavoritesPage() {
   const [cars, setCars] = useState<Car[]>([]);
   const [loading, setLoading] = useState(true);
   const [phoneNumber, setPhoneNumber] = useState('+7 980 679 0176');
+  const [telegramUsername, setTelegramUsername] = useState('dtm_moscow');
   const [isClearing, setIsClearing] = useState(false);
   const loadedRef = useRef(false);
 
@@ -57,12 +58,15 @@ export default function FavoritesPage() {
     try {
       const { data: settings } = await supabase
         .from('settings')
-        .select('phone')
+        .select('phone, telegram')
         .eq('id', 1)
         .single();
 
       if (settings?.phone && settings.phone.trim()) {
         setPhoneNumber(settings.phone);
+      }
+      if (settings?.telegram && settings.telegram.trim()) {
+        setTelegramUsername(settings.telegram.replace('@', ''));
       }
     } catch (error) {
       console.error('Error loading settings:', error);
@@ -122,6 +126,10 @@ export default function FavoritesPage() {
     window.open(`tel:${phoneNumber.replace(/\s+/g, '')}`, '_blank');
   };
 
+  const handleTelegram = () => {
+    window.open(`https://t.me/${telegramUsername}`, '_blank');
+  };
+
   const handleContact = () => {
     window.open('https://t.me/dtm_moscow', '_blank');
   };
@@ -141,8 +149,14 @@ export default function FavoritesPage() {
         }}
       >
         <div className="flex items-center justify-between px-4 py-3">
-          {/* Пустой блок для баланса */}
-          <div className="w-10"></div>
+          {/* Кнопка Telegram слева */}
+          <button
+            onClick={handleTelegram}
+            className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-tg-accent/50 hover:bg-white/10 group"
+            aria-label="Написать в Telegram"
+          >
+            <MessageCircle className="w-5 h-5 text-white group-hover:text-tg-accent transition-colors" />
+          </button>
 
           {/* Логотип DTM по центру */}
           <h1 
@@ -154,10 +168,10 @@ export default function FavoritesPage() {
             }}
           >DTM</h1>
 
-          {/* Кнопка звонка */}
+          {/* Кнопка звонка справа */}
           <button
             onClick={handleCall}
-            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-tg-accent/50 hover:bg-white/10 group"
+            className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-tg-accent/50 hover:bg-white/10 group"
             aria-label="Позвонить"
           >
             <Phone className="w-5 h-5 text-white group-hover:text-tg-accent transition-colors" />
@@ -167,7 +181,7 @@ export default function FavoritesPage() {
         {/* Заголовок и кнопка очистить */}
         <div className="px-4 pb-4 flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold flex items-center gap-2">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <Heart className="w-5 h-5 fill-current text-red-500" />
               Избранное
             </h2>
@@ -201,7 +215,7 @@ export default function FavoritesPage() {
             <div className="w-20 h-20 mx-auto rounded-full bg-tg-secondary-bg/50 flex items-center justify-center mb-4">
               <Heart className="w-10 h-10 text-tg-hint/50" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">Пока пусто</h3>
+            <h3 className="text-lg font-semibold text-white mb-2">Пока пусто</h3>
             <p className="text-sm text-tg-hint mb-6">
               Добавляйте понравившиеся авто в избранное
             </p>
@@ -240,7 +254,7 @@ export default function FavoritesPage() {
                 <div className="flex-1 py-3 pr-3 flex flex-col justify-between">
                   <div>
                     <div 
-                      className="font-semibold cursor-pointer hover:text-tg-accent transition-colors"
+                      className="font-semibold text-white cursor-pointer hover:text-tg-accent transition-colors"
                       onClick={() => handleCarClick(car.id)}
                     >
                       {car.brand} {car.model}
@@ -289,8 +303,8 @@ export default function FavoritesPage() {
             }}
           >
             <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-            <MessageCircle className="w-5 h-5 relative z-10" />
-            <span className="relative z-10">Обратная связь</span>
+            <MessageCircle className="w-5 h-5 relative z-10 text-white" />
+            <span className="relative z-10 text-white">Обратная связь</span>
           </button>
         </div>
       )}
