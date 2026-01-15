@@ -108,18 +108,18 @@ body::after {
   top: 0;
   left: 0;
   width: 100vw;
-  /* 100lvh = largest viewport height - НЕ меняется при клавиатуре */
-  height: 100lvh;
-  height: -webkit-fill-available;
+  /* svh = small viewport height - размер КАК ПРИ ОТКРЫТОЙ КЛАВИАТУРЕ */
+  /* Это гарантирует что фон НЕ будет меняться */
+  height: 100svh;
+  min-height: 100%;
   background-image: url('/dtm-background.jpg');
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
   z-index: -2;
   pointer-events: none;
-  /* GPU ускорение - предотвращает перерисовку */
-  transform: translate3d(0, 0, 0);
-  backface-visibility: hidden;
+  /* Отключаем любые перерасчёты */
+  contain: strict;
 }
 
 body::before {
@@ -128,9 +128,9 @@ body::before {
   top: 0;
   left: 0;
   width: 100vw;
-  /* 100lvh = largest viewport height - НЕ меняется при клавиатуре */
-  height: 100lvh;
-  height: -webkit-fill-available;
+  /* svh = small viewport height */
+  height: 100svh;
+  min-height: 100%;
   /* Затемнение фона - видно но не слепит */
   background: 
     radial-gradient(ellipse at top right, rgba(204, 0, 58, 0.08) 0%, transparent 50%),
@@ -141,9 +141,8 @@ body::before {
     );
   pointer-events: none;
   z-index: 0;
-  /* GPU ускорение - предотвращает перерисовку */
-  transform: translate3d(0, 0, 0);
-  backface-visibility: hidden;
+  /* Отключаем любые перерасчёты */
+  contain: strict;
 }
 
 /* Racing stripes */

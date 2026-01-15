@@ -1,42 +1,58 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { getTelegramWebApp } from '@/lib/telegram';
+import { useEffect, useLayoutEffect } from 'react';
+import { initTelegramWebApp, getTelegramWebApp } from '@/lib/telegram';
 
 export function TelegramProvider({ children }: { children: React.ReactNode }) {
-  const initialized = useRef(false);
+  // Функция для принудительного разворачивания
+  const forceExpand = () => {
+    const tg = getTelegramWebApp();
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      
+      // Пробуем fullscreen (API 8.0+)
+      if (tg.requestFullscreen && !tg.isFullscreen) {
+        try {
+          tg.requestFullscreen();
+        } catch (e) {}
+      }
+    }
+  };
+
+  // Используем useLayoutEffect для раннего expand (до отрисовки)
+  useLayoutEffect(() => {
+    forceExpand();
+  }, []);
 
   useEffect(() => {
-    // Предотвращаем повторную инициализацию
-    if (initialized.current) return;
-    initialized.current = true;
-
-    const tg = getTelegramWebApp();
+    const tg = initTelegramWebApp();
     
     if (tg) {
       // Сообщаем Telegram что приложение готово
       tg.ready();
       
-      // Разворачиваем на весь экран - ОДИН раз
+      // Разворачиваем на весь экран
       tg.expand();
+      
+      // Повторные попытки expand для надёжности
+      setTimeout(() => forceExpand(), 50);
+      setTimeout(() => forceExpand(), 100);
+      setTimeout(() => forceExpand(), 200);
+      setTimeout(() => forceExpand(), 500);
+      setTimeout(() => forceExpand(), 1000);
       
       // Отключаем вертикальные свайпы (закрытие приложения) - API 7.7+
       if (tg.disableVerticalSwipes) {
-        try {
-          tg.disableVerticalSwipes();
-        } catch (e) {}
+        tg.disableVerticalSwipes();
       }
       
-      // Настраиваем цвета header
+      // Настраиваем header (прозрачный для fullscreen эффекта)
       if (tg.setHeaderColor) {
-        try {
-          tg.setHeaderColor('#04030E');
-        } catch (e) {}
+        tg.setHeaderColor('#04030E');
       }
       if (tg.setBackgroundColor) {
-        try {
-          tg.setBackgroundColor('#04030E');
-        } catch (e) {}
+        tg.setBackgroundColor('#04030E');
       }
       
       // Устанавливаем CSS переменные для viewport
@@ -52,6 +68,19 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
       if (tg.onEvent) {
         tg.onEvent('viewportChanged', setViewportHeight);
       }
+      
+      // При изменении видимости страницы - снова expand
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          forceExpand();
+        }
+      };
+      
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      
+      return () => {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      };
     }
 
     // Блокируем свайп-закрытие когда скролл вверху страницы
