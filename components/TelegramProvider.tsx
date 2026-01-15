@@ -1,11 +1,16 @@
 'use client';
 
-import { useEffect, useLayoutEffect } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { initTelegramWebApp, getTelegramWebApp } from '@/lib/telegram';
 
 export function TelegramProvider({ children }: { children: React.ReactNode }) {
+  // Защита от множественных инициализаций
+  const isInitialized = useRef(false);
+  
   // Используем useLayoutEffect для раннего expand (до отрисовки)
   useLayoutEffect(() => {
+    if (isInitialized.current) return;
+    
     const tg = getTelegramWebApp();
     if (tg) {
       // Мгновенно разворачиваем на весь экран
@@ -22,6 +27,10 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    // Защита от повторной инициализации
+    if (isInitialized.current) return;
+    isInitialized.current = true;
+    
     const tg = initTelegramWebApp();
     
     if (tg) {
@@ -56,14 +65,19 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
         tg.setBackgroundColor('#04030E');
       }
       
-      // НЕ применяем тему Telegram - используем свои фиксированные тёмные цвета
-      // Это предотвращает появление чёрного текста на светлой теме пользователя
-      
-      // Устанавливаем CSS переменные для viewport
+      // Устанавливаем CSS переменные для viewport - используем СТАБИЛЬНУЮ высоту
       const setViewportHeight = () => {
-        const vh = tg.viewportStableHeight || tg.viewportHeight || window.innerHeight;
-        document.documentElement.style.setProperty('--tg-viewport-height', `${vh}px`);
-        document.documentElement.style.setProperty('--tg-viewport-stable-height', `${tg.viewportStableHeight || vh}px`);
+        // viewportStableHeight не меняется при открытии клавиатуры
+        const stableHeight = tg.viewportStableHeight || window.innerHeight;
+        const currentHeight = tg.viewportHeight || window.innerHeight;
+        
+        document.documentElement.style.setProperty('--tg-viewport-height', `${currentHeight}px`);
+        document.documentElement.style.setProperty('--tg-viewport-stable-height', `${stableHeight}px`);
+        
+        // Сохраняем начальную высоту для фона
+        if (!document.documentElement.style.getPropertyValue('--tg-initial-height')) {
+          document.documentElement.style.setProperty('--tg-initial-height', `${stableHeight}px`);
+        }
       };
       
       setViewportHeight();

@@ -56,6 +56,10 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   
+  // Защита от множественных инициализаций
+  const isInitialized = useRef(false);
+  const isMounted = useRef(false);
+  
   // Свайп-навигация
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
@@ -63,7 +67,17 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   
   const canGoBack = pathname !== '/';
 
+  // Инициализация - только один раз
   useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted.current) return;
+    
     if (prevPath && prevPath !== pathname) {
       const prevLevel = getPageLevel(prevPath);
       const currentLevel = getPageLevel(pathname);
@@ -80,7 +94,9 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     
     // Сбрасываем направление после анимации
     const timer = setTimeout(() => {
-      setDirection('none');
+      if (isMounted.current) {
+        setDirection('none');
+      }
     }, 400);
     
     return () => clearTimeout(timer);
@@ -88,7 +104,8 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
 
   // Обработка свайпа слева направо для навигации назад
   useEffect(() => {
-    if (pathname === '/') return; // На главной странице свайп не нужен
+    if (pathname === '/' || isInitialized.current) return;
+    isInitialized.current = true;
     
     const handleTouchStart = (e: TouchEvent) => {
       const touch = e.touches[0];
@@ -146,6 +163,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
       document.removeEventListener('touchstart', handleTouchStart);
       document.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('touchend', handleTouchEnd);
+      isInitialized.current = false;
     };
   }, [pathname, router]);
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect, useRef, useLayoutEffect } from 'react';
+import { ReactNode, useRef, useLayoutEffect, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useNavigation } from './NavigationProvider';
 
@@ -14,6 +14,17 @@ export default function PageTransition({ children }: PageTransitionProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const prevPathRef = useRef(pathname);
   const isFirstRender = useRef(true);
+  const [isReady, setIsReady] = useState(false);
+
+  // Защита от множественных рендеров при первой загрузке
+  useEffect(() => {
+    // Небольшая задержка чтобы дождаться полной инициализации
+    const timer = setTimeout(() => {
+      setIsReady(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   // Используем useLayoutEffect для синхронного обновления DOM
   useLayoutEffect(() => {
@@ -53,11 +64,13 @@ export default function PageTransition({ children }: PageTransitionProps) {
     };
   }, [pathname, direction]);
 
+  // Показываем контент только когда всё готово
   return (
     <div className="page-transition-wrapper">
       <div 
         ref={containerRef}
         className="page-transition-container"
+        style={{ opacity: isReady ? 1 : 0, transition: 'opacity 0.15s ease' }}
       >
         {children}
       </div>
