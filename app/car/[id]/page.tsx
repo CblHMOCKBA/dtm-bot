@@ -5,6 +5,7 @@ import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Car } from '@/types';
 import { getTelegramWebApp, shareCarLink } from '@/lib/telegram';
+import { sendTelegramMessage, openTelegramChat, makePhoneCall } from '@/lib/messaging';
 import { Share2, Phone, MessageCircle, Zap, Gauge, Settings2, Palette, Car as CarIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatPrice, formatMileage } from '@/lib/formatters';
 import { useNavigation } from '@/components/NavigationProvider';
@@ -123,10 +124,10 @@ export default function CarDetailPage() {
     }
   };
 
+  // ИСПРАВЛЕНО: Используем надёжную функцию отправки
   const handleContact = () => {
     if (!car) return;
     
-    const tg = getTelegramWebApp();
     const priceFormatted = new Intl.NumberFormat('ru-RU').format(car.price) + ' ₽';
     const mileageFormatted = car.mileage.toLocaleString('ru-RU') + ' км';
     
@@ -139,23 +140,12 @@ export default function CarDetailPage() {
 
 Хочу узнать подробности!`;
 
-    const encodedMessage = encodeURIComponent(message);
-    const tgLink = `https://t.me/${telegramUsername}?text=${encodedMessage}`;
-    
-    if (tg) {
-      try {
-        tg.openTelegramLink(tgLink);
-      } catch {
-        window.location.href = tgLink;
-      }
-    } else {
-      window.location.href = tgLink;
-    }
+    sendTelegramMessage(telegramUsername, message);
   };
 
+  // ИСПРАВЛЕНО: Используем надёжную функцию звонка
   const handleCall = () => {
-    const phoneClean = phoneNumber.replace(/\s+/g, '').replace(/[()-]/g, '');
-    window.open(`tel:${phoneClean}`, '_blank');
+    makePhoneCall(phoneNumber);
   };
 
   const handleShare = () => {
@@ -234,7 +224,7 @@ export default function CarDetailPage() {
 
   return (
     <div className="min-h-screen pb-24 relative">
-      {/* Header - ТОЛЬКО DTM логотип, без кнопок */}
+      {/* Header - ТОЛЬКО DTM логотип */}
       <div className="sticky top-0 z-30 border-b border-tg-accent/15"
         style={{
           background: 'linear-gradient(135deg, rgba(15, 14, 24, 0.5), rgba(26, 25, 37, 0.4))',
@@ -390,7 +380,7 @@ export default function CarDetailPage() {
           </div>
         </div>
 
-        {/* Описание - УЛУЧШЕННОЕ */}
+        {/* Описание */}
         {car.description && car.description.trim() && (
           <div 
             className="pt-4 mt-4 -mx-4 px-4 pb-4"
@@ -409,7 +399,6 @@ export default function CarDetailPage() {
                 {car.description}
               </p>
               
-              {/* Градиент затухания */}
               {car.description.length > 200 && !descriptionExpanded && (
                 <div 
                   className="absolute bottom-0 left-0 right-0 h-16 pointer-events-none"
@@ -419,7 +408,6 @@ export default function CarDetailPage() {
                 />
               )}
               
-              {/* Кнопка показать больше - ЯРКАЯ И БОЛЬШАЯ */}
               {car.description.length > 200 && (
                 <button
                   onClick={() => setDescriptionExpanded(!descriptionExpanded)}
