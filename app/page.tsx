@@ -148,17 +148,8 @@ export default function Home() {
   };
 
   const handleCall = () => {
-    const tg = getTelegramWebApp();
     const phoneClean = phoneNumber.replace(/\s+/g, '').replace(/[()-]/g, '');
-    if (tg) {
-      try {
-        tg.openLink(`tel:${phoneClean}`);
-      } catch {
-        window.location.href = `tel:${phoneClean}`;
-      }
-    } else {
-      window.location.href = `tel:${phoneClean}`;
-    }
+    window.open(`tel:${phoneClean}`, '_blank');
   };
 
   const handleTelegram = () => {

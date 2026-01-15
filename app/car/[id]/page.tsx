@@ -166,19 +166,8 @@ export default function CarDetailPage() {
   };
 
   const handleCall = () => {
-    const tg = getTelegramWebApp();
     const phoneClean = phoneNumber.replace(/\s+/g, '').replace(/[()-]/g, '');
-    
-    if (tg) {
-      // В Telegram Mini App используем openLink для телефона
-      try {
-        tg.openLink(`tel:${phoneClean}`);
-      } catch {
-        window.location.href = `tel:${phoneClean}`;
-      }
-    } else {
-      window.location.href = `tel:${phoneClean}`;
-    }
+    window.open(`tel:${phoneClean}`, '_blank');
   };
 
   const handleShare = () => {
