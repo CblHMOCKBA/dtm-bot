@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Car, Phone, SlidersHorizontal, Heart, BarChart3, Settings, Grid2X2, LayoutGrid, Award, MessageCircle } from 'lucide-react';
+import { Car, Phone, Heart, BarChart3, Settings, Grid2X2, LayoutGrid, Award, MessageCircle, ArrowUpDown, ArrowUp, ArrowDown, Calendar, DollarSign } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { isAdmin, getTelegramWebApp } from '@/lib/telegram';
 import { supabase } from '@/lib/supabase';
@@ -10,6 +10,8 @@ import CarCard from '@/components/CarCard';
 import CarCardSkeleton from '@/components/CarCardSkeleton';
 import { useFavorites } from '@/lib/useFavorites';
 import { useNavigation } from '@/components/NavigationProvider';
+
+type SortOption = 'price_asc' | 'price_desc' | 'date_asc' | 'date_desc';
 
 export default function Home() {
   const router = useRouter();
@@ -22,17 +24,12 @@ export default function Home() {
   const [statusFilter, setStatusFilter] = useState<'all' | CarStatus>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [stats, setStats] = useState({ total: 0, sold: 0, manualSold: 0, available: 0, premium: 0 });
-  const [showFilters, setShowFilters] = useState(false);
+  const [showSort, setShowSort] = useState(false);
+  const [sortOption, setSortOption] = useState<SortOption>('date_desc');
   const [viewMode, setViewMode] = useState<'single' | 'double'>('single');
   const [phoneNumber, setPhoneNumber] = useState('+7 980 679 0176');
   const [telegramUsername, setTelegramUsername] = useState('dtm_moscow');
   const [marqueeText, setMarqueeText] = useState('🔥 ГАРАНТИЯ КАЧЕСТВА • 💎 ПРЕМИУМ СЕРВИС • ⭐ ЛУЧШИЕ ЦЕНЫ');
-  
-  const [filterBrand, setFilterBrand] = useState('');
-  const [filterYearFrom, setFilterYearFrom] = useState('');
-  const [filterYearTo, setFilterYearTo] = useState('');
-  const [filterPriceFrom, setFilterPriceFrom] = useState('');
-  const [filterPriceTo, setFilterPriceTo] = useState('');
 
   useEffect(() => {
     const tg = getTelegramWebApp();
@@ -51,8 +48,8 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    applyFilters();
-  }, [cars, statusFilter, searchQuery, filterBrand, filterYearFrom, filterYearTo, filterPriceFrom, filterPriceTo]);
+    applyFiltersAndSort();
+  }, [cars, statusFilter, searchQuery, sortOption]);
 
   const loadSettings = async () => {
     try {
@@ -118,13 +115,15 @@ export default function Home() {
     }
   };
 
-  const applyFilters = () => {
+  const applyFiltersAndSort = () => {
     let filtered = [...cars];
 
+    // Применяем фильтр по статусу
     if (statusFilter !== 'all') {
       filtered = filtered.filter(car => car.status === statusFilter);
     }
 
+    // Применяем поиск
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       filtered = filtered.filter(car => 
@@ -133,37 +132,22 @@ export default function Home() {
       );
     }
 
-    if (filterBrand) {
-      filtered = filtered.filter(car => 
-        car.brand.toLowerCase() === filterBrand.toLowerCase()
-      );
-    }
-
-    if (filterYearFrom) {
-      filtered = filtered.filter(car => car.year >= parseInt(filterYearFrom));
-    }
-    if (filterYearTo) {
-      filtered = filtered.filter(car => car.year <= parseInt(filterYearTo));
-    }
-
-    if (filterPriceFrom) {
-      filtered = filtered.filter(car => car.price >= parseInt(filterPriceFrom));
-    }
-    if (filterPriceTo) {
-      filtered = filtered.filter(car => car.price <= parseInt(filterPriceTo));
-    }
+    // Применяем сортировку
+    filtered.sort((a, b) => {
+      switch (sortOption) {
+        case 'price_asc':
+          return a.price - b.price;
+        case 'price_desc':
+          return b.price - a.price;
+        case 'date_asc':
+          return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+        case 'date_desc':
+        default:
+          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+      }
+    });
 
     setFilteredCars(filtered);
-  };
-
-  const resetFilters = () => {
-    setFilterBrand('');
-    setFilterYearFrom('');
-    setFilterYearTo('');
-    setFilterPriceFrom('');
-    setFilterPriceTo('');
-    setStatusFilter('all');
-    setSearchQuery('');
   };
 
   const handleCall = () => {
@@ -174,7 +158,23 @@ export default function Home() {
     window.open(`https://t.me/${telegramUsername}`, '_blank');
   };
 
-  const uniqueBrands = Array.from(new Set(cars.map(car => car.brand))).sort();
+  const handleSortSelect = (option: SortOption) => {
+    setSortOption(option);
+    setShowSort(false);
+    const tg = getTelegramWebApp();
+    if (tg) {
+      tg.HapticFeedback.impactOccurred('light');
+    }
+  };
+
+  const getSortLabel = () => {
+    switch (sortOption) {
+      case 'price_asc': return 'Цена ↑';
+      case 'price_desc': return 'Цена ↓';
+      case 'date_asc': return 'Старые';
+      case 'date_desc': return 'Новые';
+    }
+  };
 
   const statusButtons: { value: 'all' | CarStatus; label: string }[] = [
     { value: 'all', label: 'Все' },
@@ -187,8 +187,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen pb-20">
-      {/* Hero секция - компактная */}
-      <div className="relative pt-2 pb-1">
+      {/* Hero секция - увеличен отступ сверху для TG UI */}
+      <div className="relative pt-14 pb-1">
         {/* Шапка с кнопками по углам */}
         <div className="flex items-center justify-between px-3 mb-1">
           {/* Кнопка Telegram слева */}
@@ -243,7 +243,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Статистика - увеличенные карточки */}
+        {/* Статистика */}
         <div className="grid grid-cols-3 gap-2 px-3 mt-1 mb-2">
           <div className="bg-white/5 backdrop-blur-sm rounded-xl py-2.5 px-2 text-center border border-white/10 hover:border-tg-accent/30 transition-all">
             <div className="text-xl font-bold text-tg-accent">{stats.available}</div>
@@ -308,42 +308,23 @@ export default function Home() {
             )}
           </button>
 
+          {/* Кнопка сортировки */}
           <button
-            onClick={() => setShowFilters(true)}
-            className="refined-icon-button group"
-            aria-label="Фильтры"
+            onClick={() => setShowSort(true)}
+            className="refined-icon-button group relative"
+            aria-label="Сортировка"
           >
-            <SlidersHorizontal className="w-5 h-5 text-tg-accent transition-all group-hover:rotate-90 group-hover:scale-110 duration-300" />
+            <ArrowUpDown className="w-5 h-5 text-tg-accent transition-all group-hover:scale-110 duration-300" />
           </button>
         </div>
 
-        {/* Активные фильтры */}
-        {(filterBrand || filterYearFrom || filterYearTo || filterPriceFrom || filterPriceTo) && (
-          <div className="px-3 pb-2">
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-              {filterBrand && (
-                <div className="refined-active-badge group">
-                  <span>{filterBrand}</span>
-                  <button onClick={() => setFilterBrand('')} className="hover:scale-125 transition-transform">×</button>
-                </div>
-              )}
-              {(filterYearFrom || filterYearTo) && (
-                <div className="refined-active-badge group">
-                  <span>{filterYearFrom || '...'} - {filterYearTo || '...'}</span>
-                  <button onClick={() => { setFilterYearFrom(''); setFilterYearTo(''); }} className="hover:scale-125 transition-transform">×</button>
-                </div>
-              )}
-              {(filterPriceFrom || filterPriceTo) && (
-                <div className="refined-active-badge group">
-                  <span>
-                    {filterPriceFrom ? `${(parseInt(filterPriceFrom) / 1000000).toFixed(1)}М` : '...'} - {filterPriceTo ? `${(parseInt(filterPriceTo) / 1000000).toFixed(1)}М` : '...'}
-                  </span>
-                  <button onClick={() => { setFilterPriceFrom(''); setFilterPriceTo(''); }} className="hover:scale-125 transition-transform">×</button>
-                </div>
-              )}
-            </div>
+        {/* Индикатор текущей сортировки */}
+        <div className="px-3 pb-2">
+          <div className="flex items-center gap-2 text-xs text-tg-hint">
+            <span>Сортировка:</span>
+            <span className="text-tg-accent font-medium">{getSortLabel()}</span>
           </div>
-        )}
+        </div>
 
         {/* Список машин */}
         <div className="px-3 pt-1">
@@ -358,7 +339,7 @@ export default function Home() {
               <div className="text-center py-8 fade-in">
                 <Car className="w-14 h-14 mx-auto mb-3 text-tg-hint opacity-50 animate-pulse" />
                 <p className="text-tg-hint text-base mb-2">Автомобили не найдены</p>
-                <button onClick={resetFilters} className="tg-button mt-3 pulse-button">
+                <button onClick={() => { setStatusFilter('all'); setSearchQuery(''); }} className="tg-button mt-3 pulse-button">
                   Сбросить фильтры
                 </button>
               </div>
@@ -380,76 +361,95 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Панель фильтров */}
-      {showFilters && (
+      {/* Модальное окно сортировки */}
+      {showSort && (
         <div 
-          className="fixed inset-0 z-30 flex items-end justify-center animate-fade-in"
+          className="fixed inset-0 z-50 flex items-end justify-center animate-fade-in"
           style={{
             background: 'rgba(4, 3, 14, 0.9)',
             backdropFilter: 'blur(8px)'
           }}
-          onClick={() => setShowFilters(false)}
+          onClick={() => setShowSort(false)}
         >
           <div 
-            className="w-full max-w-md rounded-t-3xl p-5 space-y-3 animate-slide-up"
+            className="w-full max-w-md rounded-t-3xl p-5 animate-slide-up"
             style={{
               background: 'linear-gradient(135deg, rgba(15, 14, 24, 0.98), rgba(26, 25, 37, 0.95))',
               backdropFilter: 'blur(20px)',
               borderTop: '2px solid rgba(204, 0, 58, 0.5)',
-              maxHeight: '75vh',
-              overflowY: 'auto',
               boxShadow: '0 -10px 40px rgba(204, 0, 58, 0.3)'
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xl font-bold brand-name text-tg-accent">ФИЛЬТРЫ</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold brand-name text-tg-accent">СОРТИРОВКА</h2>
               <button
-                onClick={() => setShowFilters(false)}
+                onClick={() => setShowSort(false)}
                 className="w-9 h-9 rounded-full bg-tg-secondary-bg flex items-center justify-center active:scale-95 transition-transform"
               >
                 <span className="text-xl">×</span>
               </button>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-tg-hint mb-1.5 uppercase tracking-wider">Марка</label>
-              <select value={filterBrand} onChange={(e) => setFilterBrand(e.target.value)} className="refined-select text-sm">
-                <option value="">Все марки</option>
-                {uniqueBrands.map(brand => (
-                  <option key={brand} value={brand}>{brand}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-xs font-bold text-tg-hint mb-1.5 uppercase tracking-wider">Год от</label>
-                <input type="number" placeholder="2010" value={filterYearFrom} onChange={(e) => setFilterYearFrom(e.target.value)} className="refined-input text-sm" />
+            <div className="space-y-2">
+              {/* По цене */}
+              <div className="text-xs text-tg-hint uppercase tracking-wider mb-2 flex items-center gap-2">
+                <DollarSign className="w-4 h-4" />
+                По цене
               </div>
-              <div>
-                <label className="block text-xs font-bold text-tg-hint mb-1.5 uppercase tracking-wider">Год до</label>
-                <input type="number" placeholder="2024" value={filterYearTo} onChange={(e) => setFilterYearTo(e.target.value)} className="refined-input text-sm" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-xs font-bold text-tg-hint mb-1.5 uppercase tracking-wider">Цена от</label>
-                <input type="number" placeholder="1000000" value={filterPriceFrom} onChange={(e) => setFilterPriceFrom(e.target.value)} className="refined-input text-sm" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-tg-hint mb-1.5 uppercase tracking-wider">Цена до</label>
-                <input type="number" placeholder="10000000" value={filterPriceTo} onChange={(e) => setFilterPriceTo(e.target.value)} className="refined-input text-sm" />
-              </div>
-            </div>
-
-            <div className="flex gap-2 pt-3">
-              <button onClick={resetFilters} className="tg-button-secondary flex-1 active:scale-95 transition-transform text-sm py-3">
-                Сбросить
+              
+              <button
+                onClick={() => handleSortSelect('price_asc')}
+                className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all active:scale-[0.98] ${
+                  sortOption === 'price_asc' 
+                    ? 'bg-tg-accent/20 border-tg-accent/50 text-white' 
+                    : 'bg-tg-secondary-bg/50 border-tg-hint/10 text-tg-hint hover:border-tg-accent/30'
+                }`}
+              >
+                <span className="font-medium">Сначала дешёвые</span>
+                <ArrowUp className="w-5 h-5" />
               </button>
-              <button onClick={() => setShowFilters(false)} className="tg-button flex-1 pulse-button active:scale-95 transition-transform text-sm py-3">
-                Применить
+
+              <button
+                onClick={() => handleSortSelect('price_desc')}
+                className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all active:scale-[0.98] ${
+                  sortOption === 'price_desc' 
+                    ? 'bg-tg-accent/20 border-tg-accent/50 text-white' 
+                    : 'bg-tg-secondary-bg/50 border-tg-hint/10 text-tg-hint hover:border-tg-accent/30'
+                }`}
+              >
+                <span className="font-medium">Сначала дорогие</span>
+                <ArrowDown className="w-5 h-5" />
+              </button>
+
+              {/* По дате */}
+              <div className="text-xs text-tg-hint uppercase tracking-wider mb-2 mt-4 flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                По дате добавления
+              </div>
+
+              <button
+                onClick={() => handleSortSelect('date_desc')}
+                className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all active:scale-[0.98] ${
+                  sortOption === 'date_desc' 
+                    ? 'bg-tg-accent/20 border-tg-accent/50 text-white' 
+                    : 'bg-tg-secondary-bg/50 border-tg-hint/10 text-tg-hint hover:border-tg-accent/30'
+                }`}
+              >
+                <span className="font-medium">Сначала новые</span>
+                <ArrowDown className="w-5 h-5" />
+              </button>
+
+              <button
+                onClick={() => handleSortSelect('date_asc')}
+                className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all active:scale-[0.98] ${
+                  sortOption === 'date_asc' 
+                    ? 'bg-tg-accent/20 border-tg-accent/50 text-white' 
+                    : 'bg-tg-secondary-bg/50 border-tg-hint/10 text-tg-hint hover:border-tg-accent/30'
+                }`}
+              >
+                <span className="font-medium">Сначала старые</span>
+                <ArrowUp className="w-5 h-5" />
               </button>
             </div>
           </div>

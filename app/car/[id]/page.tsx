@@ -122,12 +122,31 @@ export default function CarDetailPage() {
     }
   };
 
+  // ИСПРАВЛЕННАЯ функция - генерация сообщения с данными авто
   const handleContact = () => {
-    if (car) {
-      const message = `Здравствуйте! Заинтересовался автомобилем:\n\n🚗 ${car.brand} ${car.model}\n📅 Год: ${car.year}\n💰 Цена: ${formatPrice(car.price)}\n📍 Пробег: ${formatMileage(car.mileage)}\n\nХочу узнать подробности!`;
-      const encodedMessage = encodeURIComponent(message);
-      window.open(`https://t.me/dtm_moscow?text=${encodedMessage}`, '_blank');
-    }
+    if (!car) return;
+    
+    // Форматируем цену
+    const priceFormatted = new Intl.NumberFormat('ru-RU').format(car.price) + ' ₽';
+    
+    // Форматируем пробег
+    const mileageFormatted = car.mileage.toLocaleString('ru-RU') + ' км';
+    
+    // Собираем сообщение
+    const message = `Здравствуйте! Интересует автомобиль:
+
+🚗 ${car.brand} ${car.model}
+📅 Год: ${car.year}
+💰 Цена: ${priceFormatted}
+📍 Пробег: ${mileageFormatted}
+
+Хочу узнать подробности!`;
+
+    // Кодируем и открываем Telegram
+    const encodedMessage = encodeURIComponent(message);
+    const tgUrl = `https://t.me/${telegramUsername}?text=${encodedMessage}`;
+    
+    window.open(tgUrl, '_blank');
   };
 
   const handleCall = () => {
@@ -218,7 +237,6 @@ export default function CarDetailPage() {
         }}
       >
         <div className="flex items-center justify-center px-4 py-3">
-          {/* DTM по центру */}
           <h1 
             className="text-2xl font-black tracking-[0.15em]"
             style={{
@@ -293,7 +311,7 @@ export default function CarDetailPage() {
 
         {/* Цена */}
         <div className="text-2xl font-bold text-white">
-          {formatPrice(car.price)}
+          {new Intl.NumberFormat('ru-RU').format(car.price)} ₽
         </div>
 
         {/* Компактные характеристики */}
@@ -364,7 +382,7 @@ export default function CarDetailPage() {
             {car.mileage > 0 && (
               <div className="flex justify-between py-1.5 border-b border-tg-hint/10">
                 <span className="text-tg-hint text-xs">Пробег</span>
-                <span className="font-medium text-white text-xs">{formatMileage(car.mileage)}</span>
+                <span className="font-medium text-white text-xs">{car.mileage.toLocaleString('ru-RU')} км</span>
               </div>
             )}
           </div>
