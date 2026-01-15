@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { getTelegramWebApp } from '@/lib/telegram';
-import { Phone, Users, MessageCircle, CheckCircle, Shield, Zap, Star, Award } from 'lucide-react';
+import { CheckCircle, Shield, Zap, Star, Award, MessageCircle } from 'lucide-react';
 
 interface InfoPageData {
   id: string;
@@ -71,10 +71,6 @@ export default function InfoPageComponent({ pageId }: InfoPageProps) {
     window.open(`https://t.me/${contactUsername}?text=${message}`, '_blank');
   };
 
-  const handleGroup = () => {
-    window.open('https://t.me/dtm_auto', '_blank');
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -93,7 +89,7 @@ export default function InfoPageComponent({ pageId }: InfoPageProps) {
 
   return (
     <div className="min-h-screen pb-6">
-      {/* Шапка */}
+      {/* Шапка - только DTM */}
       <div className="sticky top-0 bg-tg-bg/95 backdrop-blur-md z-10 border-b border-tg-hint/10">
         <div className="flex items-center justify-center px-4 py-3">
           {/* DTM логотип по центру */}
@@ -110,74 +106,66 @@ export default function InfoPageComponent({ pageId }: InfoPageProps) {
         </div>
       </div>
 
-      <div className="px-4 space-y-6 mt-6">
+      <div className="px-4 space-y-4 mt-4">
         {/* Иконка и заголовок */}
-        <div className="text-center space-y-4">
-          <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-tg-accent/20 to-tg-accent/5 flex items-center justify-center">
-            <Icon className="w-10 h-10 text-tg-accent" />
+        <div className="text-center space-y-3">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-tg-accent/20 to-tg-accent/5 flex items-center justify-center">
+            <Icon className="w-8 h-8 text-tg-accent" />
           </div>
           
           <div>
-            <p className="text-sm text-tg-accent font-semibold uppercase tracking-wider mb-2">
+            <p className="text-xs text-tg-accent font-semibold uppercase tracking-wider mb-1">
               {data.subtitle}
             </p>
-            <h1 className="text-2xl font-bold text-gradient">
+            <h1 className="text-xl font-bold text-gradient">
               {data.title}
             </h1>
           </div>
         </div>
 
         {/* Список пунктов */}
-        <div className="tg-card p-5 space-y-3">
+        <div className="tg-card p-4 space-y-2">
           {data.items.map((item, index) => (
             <div 
               key={index}
-              className="flex items-start gap-3 p-3 rounded-xl bg-tg-secondary-bg/50 hover:bg-tg-accent/5 transition-colors"
+              className="flex items-start gap-2.5 p-2.5 rounded-xl bg-tg-secondary-bg/50 hover:bg-tg-accent/5 transition-colors"
             >
-              <div className="w-6 h-6 rounded-full bg-tg-accent/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <CheckCircle className="w-4 h-4 text-tg-accent" />
+              <div className="w-5 h-5 rounded-full bg-tg-accent/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <CheckCircle className="w-3 h-3 text-tg-accent" />
               </div>
-              <span className="text-sm font-medium">{item}</span>
+              <span className="text-xs font-medium">{item}</span>
             </div>
           ))}
         </div>
 
         {/* Преимущество */}
-        <div className="tg-card p-5 bg-gradient-to-br from-tg-accent/10 to-transparent border-tg-accent/20">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-tg-accent/20 flex items-center justify-center flex-shrink-0">
-              <Star className="w-5 h-5 text-tg-accent" />
+        <div className="tg-card p-4 bg-gradient-to-br from-tg-accent/10 to-transparent border-tg-accent/20">
+          <div className="flex items-start gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-tg-accent/20 flex items-center justify-center flex-shrink-0">
+              <Star className="w-4 h-4 text-tg-accent" />
             </div>
             <div>
-              <p className="text-xs text-tg-accent font-semibold uppercase tracking-wider mb-1">
+              <p className="text-[10px] text-tg-accent font-semibold uppercase tracking-wider mb-0.5">
                 Преимущество
               </p>
-              <p className="font-medium">{data.advantage}</p>
+              <p className="text-sm font-medium">{data.advantage}</p>
             </div>
           </div>
         </div>
 
-        {/* Кнопки */}
-        <div className="space-y-3 pt-4">
+        {/* Кнопка связи */}
+        <div className="pt-3">
           <button
             onClick={handleContact}
-            className="w-full tg-button flex items-center justify-center gap-2 py-4"
+            className="w-full tg-button flex items-center justify-center gap-2 py-3.5"
           >
             <MessageCircle className="w-5 h-5" />
-            <span className="font-semibold">Связаться с менеджером</span>
-          </button>
-
-          <button
-            onClick={handleGroup}
-            className="w-full tg-button-secondary tg-button flex items-center justify-center gap-2 py-4"
-          >
-            <Users className="w-5 h-5" />
-            <span className="font-semibold">Наше сообщество</span>
+            <span className="font-semibold text-sm">Связаться с менеджером</span>
           </button>
         </div>
 
         {/* Racing line декор */}
-        <div className="h-1 w-full bg-gradient-to-r from-transparent via-tg-accent to-transparent opacity-30 mt-8"></div>
+        <div className="h-0.5 w-full bg-gradient-to-r from-transparent via-tg-accent to-transparent opacity-30 mt-6"></div>
       </div>
     </div>
   );

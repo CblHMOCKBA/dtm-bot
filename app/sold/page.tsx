@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Grid2X2, LayoutGrid, Phone, MessageCircle } from 'lucide-react';
+import { Grid2X2, LayoutGrid } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Car as CarType } from '@/types';
@@ -18,8 +18,6 @@ export default function SoldPage() {
   const [totalCount, setTotalCount] = useState(0);
   const [viewMode, setViewMode] = useState<'single' | 'double'>('single');
   const [searchQuery, setSearchQuery] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('+7 980 679 0176');
-  const [telegramUsername, setTelegramUsername] = useState('dtm_moscow');
 
   useEffect(() => {
     const tg = getTelegramWebApp();
@@ -30,7 +28,6 @@ export default function SoldPage() {
     }
 
     loadSoldCars();
-    loadSettings();
 
     return () => {
       if (tg) {
@@ -42,25 +39,6 @@ export default function SoldPage() {
   useEffect(() => {
     applySearch();
   }, [cars, searchQuery]);
-
-  const loadSettings = async () => {
-    try {
-      const { data: settings } = await supabase
-        .from('settings')
-        .select('phone, telegram')
-        .eq('id', 1)
-        .single();
-
-      if (settings?.phone && settings.phone.trim()) {
-        setPhoneNumber(settings.phone);
-      }
-      if (settings?.telegram && settings.telegram.trim()) {
-        setTelegramUsername(settings.telegram.replace('@', ''));
-      }
-    } catch (error) {
-      console.error('Error loading settings:', error);
-    }
-  };
 
   const loadSoldCars = async () => {
     try {
@@ -97,33 +75,16 @@ export default function SoldPage() {
     }
   };
 
-  const handleCall = () => {
-    window.open(`tel:${phoneNumber.replace(/\s+/g, '')}`, '_blank');
-  };
-
-  const handleTelegram = () => {
-    window.open(`https://t.me/${telegramUsername}`, '_blank');
-  };
-
   return (
     <div className="min-h-screen pb-20">
-      {/* Шапка с DTM брендингом */}
+      {/* Шапка - только DTM */}
       <div className="sticky top-0 z-20 border-b border-tg-hint/10"
         style={{
           background: 'linear-gradient(135deg, rgba(15, 14, 24, 0.5), rgba(26, 25, 37, 0.4))',
           backdropFilter: 'blur(10px)'
         }}
       >
-        <div className="flex items-center justify-between px-4 py-3">
-          {/* Кнопка Telegram слева */}
-          <button
-            onClick={handleTelegram}
-            className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-tg-accent/50 hover:bg-white/10 group"
-            aria-label="Написать в Telegram"
-          >
-            <MessageCircle className="w-5 h-5 text-white group-hover:text-tg-accent transition-colors" />
-          </button>
-
+        <div className="flex items-center justify-center px-4 py-3">
           {/* DTM логотип по центру */}
           <div className="text-center">
             <h1 
@@ -136,17 +97,8 @@ export default function SoldPage() {
             >
               DTM
             </h1>
-            <p className="text-[9px] tracking-[0.2em] uppercase -mt-0.5" style={{ color: '#9CA3AF' }}>Проданные автомобили</p>
+            <p className="text-[8px] tracking-[0.2em] uppercase -mt-0.5" style={{ color: '#9CA3AF' }}>Проданные автомобили</p>
           </div>
-
-          {/* Кнопка звонка справа */}
-          <button
-            onClick={handleCall}
-            className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-tg-accent/50 hover:bg-white/10 group"
-            aria-label="Позвонить"
-          >
-            <Phone className="w-5 h-5 text-white group-hover:text-tg-accent transition-colors" />
-          </button>
         </div>
 
         {/* Поиск + Кнопка вида */}
@@ -156,12 +108,12 @@ export default function SoldPage() {
             placeholder="Поиск по марке, модели..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 tg-input"
+            className="flex-1 tg-input text-sm"
           />
           
           <button
             onClick={() => setViewMode(viewMode === 'single' ? 'double' : 'single')}
-            className="w-11 h-11 flex items-center justify-center tg-card hover:border-tg-accent transition-all active:scale-95"
+            className="w-10 h-10 flex items-center justify-center tg-card hover:border-tg-accent transition-all active:scale-95"
             aria-label="Переключить вид"
           >
             {viewMode === 'single' ? (
@@ -173,8 +125,8 @@ export default function SoldPage() {
         </div>
 
         {/* Счётчик */}
-        <div className="px-4 pb-3">
-          <div className="text-sm text-tg-hint text-center">
+        <div className="px-4 pb-2">
+          <div className="text-xs text-tg-hint text-center">
             {filteredCars.length === 0 && !loading && 'Ничего не найдено'}
             {filteredCars.length > 0 && `Найдено: ${filteredCars.length} из ${totalCount} проданных`}
           </div>
@@ -182,29 +134,29 @@ export default function SoldPage() {
       </div>
 
       {/* Контент */}
-      <div className="px-4 pt-4">
+      <div className="px-4 pt-3">
         <div className="max-w-3xl mx-auto">
           {/* Список */}
           {loading ? (
-            <div className={`grid ${viewMode === 'single' ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
+            <div className={`grid ${viewMode === 'single' ? 'grid-cols-1' : 'grid-cols-2'} gap-3`}>
               {[1, 2, 3, 4].map((i) => (
                 <CarCardSkeleton key={i} />
               ))}
             </div>
           ) : filteredCars.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-tg-hint text-lg mb-2">
+            <div className="text-center py-10">
+              <p className="text-tg-hint text-base mb-2">
                 {searchQuery ? 'Ничего не найдено' : 'Пока нет проданных автомобилей'}
               </p>
               <button
                 onClick={() => searchQuery ? setSearchQuery('') : router.push('/catalog')}
-                className="tg-button mt-4"
+                className="tg-button mt-3 text-sm"
               >
                 {searchQuery ? 'Сбросить поиск' : 'Перейти в каталог'}
               </button>
             </div>
           ) : (
-            <div className={`grid ${viewMode === 'single' ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
+            <div className={`grid ${viewMode === 'single' ? 'grid-cols-1' : 'grid-cols-2'} gap-3`}>
               {filteredCars.map((car) => (
                 <CarCard key={car.id} car={car} />
               ))}
