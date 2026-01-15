@@ -317,8 +317,17 @@ export default function Home() {
       {/* Hero секция */}
       <div className="relative pt-14 pb-1">
         <div className="flex items-center justify-between px-3 mb-1">
-          {/* Левая часть: Тема + Telegram */}
-          <div className="flex items-center gap-2">
+          {/* Левая часть: Telegram + Тема */}
+          <div className="flex items-center gap-2 w-[100px]">
+            {/* Telegram */}
+            <button
+              onClick={handleTelegram}
+              className="w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-[#29B6F6]/50 hover:bg-white/10 group"
+              aria-label="Telegram"
+            >
+              <MessageCircle className="w-5 h-5 text-white group-hover:text-[#29B6F6] transition-colors" />
+            </button>
+
             {/* Кнопка переключения темы */}
             <button
               onClick={toggleDarkMode}
@@ -331,18 +340,10 @@ export default function Home() {
                 <Moon className="w-5 h-5 text-white/70 group-hover:text-white transition-colors" />
               )}
             </button>
-
-            {/* Telegram */}
-            <button
-              onClick={handleTelegram}
-              className="w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-[#29B6F6]/50 hover:bg-white/10 group"
-              aria-label="Telegram"
-            >
-              <MessageCircle className="w-5 h-5 text-white group-hover:text-[#29B6F6] transition-colors" />
-            </button>
           </div>
 
-          <div className="text-center">
+          {/* DTM по центру - абсолютное позиционирование */}
+          <div className="absolute left-1/2 -translate-x-1/2 text-center">
             <h1 
               className="text-2xl font-black tracking-[0.15em]"
               style={{
@@ -361,13 +362,16 @@ export default function Home() {
             </p>
           </div>
 
-          <button
-            onClick={handleCall}
-            className="w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-[#CC003A]/50 hover:bg-white/10 group"
-            aria-label="Позвонить"
-          >
-            <Phone className="w-5 h-5 text-white group-hover:text-[#CC003A] transition-colors" />
-          </button>
+          {/* Правая часть - кнопка звонка */}
+          <div className="w-[100px] flex justify-end">
+            <button
+              onClick={handleCall}
+              className="w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-[#CC003A]/50 hover:bg-white/10 group"
+              aria-label="Позвонить"
+            >
+              <Phone className="w-5 h-5 text-white group-hover:text-[#CC003A] transition-colors" />
+            </button>
+          </div>
         </div>
 
         {/* Бегущая строка */}
