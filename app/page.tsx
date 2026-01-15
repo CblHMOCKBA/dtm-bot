@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { Car, Phone, Heart, BarChart3, Settings, Grid2X2, LayoutGrid, FileText, MessageCircle, ArrowUpDown, ArrowUp, ArrowDown, Calendar, DollarSign, Send, X, Search } from 'lucide-react';
+import { Car, Phone, Heart, BarChart3, Settings, Grid2X2, LayoutGrid, FileText, MessageCircle, ArrowUpDown, ArrowUp, ArrowDown, Calendar, DollarSign, Send, X, Search, Moon, Sun } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { isAdmin, getTelegramWebApp } from '@/lib/telegram';
 import { supabase } from '@/lib/supabase';
@@ -33,6 +33,7 @@ export default function Home() {
   const [phoneNumber, setPhoneNumber] = useState('+7 980 679 0176');
   const [telegramUsername, setTelegramUsername] = useState('dtm_moscow');
   const [marqueeText, setMarqueeText] = useState('🔥 ГАРАНТИЯ КАЧЕСТВА • 💎 ПРЕМИУМ СЕРВИС • ⭐ ЛУЧШИЕ ЦЕНЫ');
+  const [darkMode, setDarkMode] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Форма заявки
@@ -48,6 +49,12 @@ export default function Home() {
       tg.expand();
     }
 
+    // Загружаем сохранённую тему
+    const savedDarkMode = localStorage.getItem('dtm-dark-mode');
+    if (savedDarkMode === 'true') {
+      setDarkMode(true);
+    }
+
     setIsAdminUser(isAdmin());
 
     Promise.all([
@@ -56,6 +63,16 @@ export default function Home() {
       loadSettings()
     ]);
   }, []);
+
+  // Применяем тему
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add('dark-elegant-mode');
+    } else {
+      document.body.classList.remove('dark-elegant-mode');
+    }
+    localStorage.setItem('dtm-dark-mode', darkMode.toString());
+  }, [darkMode]);
 
   useEffect(() => {
     applyFiltersAndSort();
@@ -203,10 +220,17 @@ export default function Home() {
   };
 
   const handleSearchBlur = () => {
-    // Небольшая задержка чтобы успел сработать клик по результату
     setTimeout(() => {
       setSearchFocused(false);
     }, 200);
+  };
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+    const tg = getTelegramWebApp();
+    if (tg?.HapticFeedback) {
+      tg.HapticFeedback.impactOccurred('medium');
+    }
   };
 
   const handleSubmitRequest = () => {
@@ -293,13 +317,30 @@ export default function Home() {
       {/* Hero секция */}
       <div className="relative pt-14 pb-1">
         <div className="flex items-center justify-between px-3 mb-1">
-          <button
-            onClick={handleTelegram}
-            className="w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-[#29B6F6]/50 hover:bg-white/10 group"
-            aria-label="Telegram"
-          >
-            <MessageCircle className="w-5 h-5 text-white group-hover:text-[#29B6F6] transition-colors" />
-          </button>
+          {/* Левая часть: Тема + Telegram */}
+          <div className="flex items-center gap-2">
+            {/* Кнопка переключения темы */}
+            <button
+              onClick={toggleDarkMode}
+              className="w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-amber-500/50 hover:bg-white/10 group"
+              aria-label="Переключить тему"
+            >
+              {darkMode ? (
+                <Sun className="w-5 h-5 text-amber-400 group-hover:text-amber-300 transition-colors" />
+              ) : (
+                <Moon className="w-5 h-5 text-white/70 group-hover:text-white transition-colors" />
+              )}
+            </button>
+
+            {/* Telegram */}
+            <button
+              onClick={handleTelegram}
+              className="w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-[#29B6F6]/50 hover:bg-white/10 group"
+              aria-label="Telegram"
+            >
+              <MessageCircle className="w-5 h-5 text-white group-hover:text-[#29B6F6] transition-colors" />
+            </button>
+          </div>
 
           <div className="text-center">
             <h1 
@@ -342,27 +383,27 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Статистика - ИСПРАВЛЕНО выравнивание */}
+        {/* Статистика - ИСПРАВЛЕНО: одинаковая структура для всех */}
         <div className="grid grid-cols-3 gap-2 px-3 mt-1 mb-2">
-          <div className="bg-white/5 backdrop-blur-sm rounded-xl py-2.5 px-2 text-center border border-white/10 hover:border-tg-accent/30 transition-all h-[72px] flex flex-col justify-center">
-            <div className="text-xl font-bold text-tg-accent">{stats.available}</div>
-            <div className="text-[8px] text-tg-hint uppercase tracking-wider font-medium">В наличии</div>
+          <div className="bg-white/5 backdrop-blur-sm rounded-xl py-3 px-2 text-center border border-white/10 hover:border-tg-accent/30 transition-all">
+            <div className="text-xl font-bold text-tg-accent leading-none">{stats.available}</div>
+            <div className="text-[8px] text-tg-hint uppercase tracking-wider font-medium mt-1.5">В наличии</div>
           </div>
           <button 
             onClick={() => { navigateForward(); router.push('/sold'); }}
-            className="bg-white/5 backdrop-blur-sm rounded-xl py-2.5 px-2 text-center border border-white/10 transition-all duration-300 active:scale-95 hover:scale-[1.02] hover:border-tg-accent/40 hover:bg-white/10 h-[72px] flex flex-col justify-center"
+            className="bg-white/5 backdrop-blur-sm rounded-xl py-3 px-2 text-center border border-white/10 transition-all duration-300 active:scale-95 hover:scale-[1.02] hover:border-tg-accent/40 hover:bg-white/10"
           >
-            <div className="text-xl font-bold text-white">{totalSold}</div>
-            <div className="text-[8px] text-tg-hint uppercase tracking-wider font-medium">Продано</div>
+            <div className="text-xl font-bold text-white leading-none">{totalSold}</div>
+            <div className="text-[8px] text-tg-hint uppercase tracking-wider font-medium mt-1.5">Продано</div>
           </button>
           <button 
             onClick={() => setShowRequestForm(true)}
-            className="bg-white/5 backdrop-blur-sm rounded-xl py-2.5 px-2 text-center border border-white/10 transition-all duration-300 active:scale-95 hover:scale-[1.02] hover:border-green-500/40 hover:bg-white/10 h-[72px] flex flex-col justify-center"
+            className="bg-white/5 backdrop-blur-sm rounded-xl py-3 px-2 text-center border border-white/10 transition-all duration-300 active:scale-95 hover:scale-[1.02] hover:border-green-500/40 hover:bg-white/10"
           >
-            <div className="text-xl font-bold text-green-400 flex items-center justify-center">
+            <div className="text-xl font-bold text-green-400 leading-none flex items-center justify-center">
               <FileText className="w-5 h-5" />
             </div>
-            <div className="text-[8px] text-tg-hint uppercase tracking-wider font-medium">Заявка</div>
+            <div className="text-[8px] text-tg-hint uppercase tracking-wider font-medium mt-1.5">Заявка</div>
           </button>
         </div>
       </div>
@@ -419,7 +460,6 @@ export default function Home() {
                     onClick={() => handleSearchResultClick(car.id)}
                     className="w-full flex items-center gap-3 p-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-b-0"
                   >
-                    {/* Мини фото */}
                     <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-tg-secondary-bg">
                       {car.photos && car.photos[0] ? (
                         <img 
@@ -434,7 +474,6 @@ export default function Home() {
                       )}
                     </div>
                     
-                    {/* Инфо */}
                     <div className="flex-1 text-left">
                       <div className="text-white font-medium text-sm">
                         {car.brand} {car.model}
@@ -451,7 +490,6 @@ export default function Home() {
               </div>
             )}
 
-            {/* Пустой результат */}
             {searchFocused && searchQuery.trim() && searchResults.length === 0 && (
               <div 
                 className="absolute top-full left-0 right-0 mt-2 rounded-xl p-4 z-50 text-center"

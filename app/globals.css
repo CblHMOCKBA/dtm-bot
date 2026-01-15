@@ -101,26 +101,20 @@ body {
   background-color: #04030E;
 }
 
-/* Фоновое изображение - АБСОЛЮТНО ФИКСИРОВАННЫЙ РАЗМЕР */
+/* Фоновое изображение через псевдоэлемент - работает на всех устройствах */
 body::after {
   content: '';
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  /* Фиксированная высота - НЕ МЕНЯЕТСЯ НИКОГДА */
-  height: 100vh;
-  height: 100dvh;
+  width: 100%;
+  height: 100%;
   background-image: url('/dtm-background.jpg');
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
-  background-attachment: fixed;
   z-index: -2;
   pointer-events: none;
-  /* Полностью отключаем реакцию на изменения viewport */
-  transform: translateZ(0);
-  will-change: auto;
 }
 
 body::before {
@@ -128,10 +122,9 @@ body::before {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh;
-  /* Затемнение фона */
+  width: 100%;
+  height: 100%;
+  /* Затемнение фона - видно но не слепит */
   background: 
     radial-gradient(ellipse at top right, rgba(204, 0, 58, 0.08) 0%, transparent 50%),
     linear-gradient(180deg, 
@@ -139,17 +132,8 @@ body::before {
       rgba(4, 3, 14, 0.5) 50%,
       rgba(4, 3, 14, 0.6) 100%
     );
-  background-attachment: fixed;
   pointer-events: none;
   z-index: 0;
-  transform: translateZ(0);
-}
-
-/* Блокируем resize при клавиатуре */
-@supports (height: 100dvh) {
-  body::after, body::before {
-    height: 100dvh;
-  }
 }
 
 /* Racing stripes */
@@ -1618,4 +1602,81 @@ body::before {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* ========================================
+   ELEGANT DARK MODE - Элегантная тёмная тема
+======================================== */
+
+/* Скрываем фон когда включена тёмная тема */
+body.dark-elegant-mode::after {
+  background-image: none !important;
+  background: linear-gradient(
+    145deg,
+    #0a0a0f 0%,
+    #0d0d14 25%,
+    #0f0f18 50%,
+    #0d0d14 75%,
+    #0a0a0f 100%
+  ) !important;
+}
+
+body.dark-elegant-mode::before {
+  background: 
+    /* Subtle вино-красное свечение сверху */
+    radial-gradient(ellipse at top center, rgba(139, 0, 50, 0.08) 0%, transparent 50%),
+    /* Очень тонкие линии для текстуры */
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 100px,
+      rgba(255, 255, 255, 0.01) 100px,
+      rgba(255, 255, 255, 0.01) 101px
+    ),
+    /* Gradient overlay */
+    linear-gradient(
+      180deg,
+      rgba(10, 10, 15, 0.3) 0%,
+      transparent 30%,
+      transparent 70%,
+      rgba(10, 10, 15, 0.3) 100%
+    ) !important;
+}
+
+/* Карточки в тёмной теме - более глубокий фон */
+body.dark-elegant-mode .bg-white\/5 {
+  background: rgba(15, 15, 22, 0.6) !important;
+  border-color: rgba(139, 0, 50, 0.15) !important;
+}
+
+body.dark-elegant-mode .bg-white\/5:hover {
+  background: rgba(20, 20, 30, 0.7) !important;
+  border-color: rgba(139, 0, 50, 0.3) !important;
+}
+
+/* Нижняя навигация */
+body.dark-elegant-mode .fixed.bottom-0 {
+  background: rgba(8, 8, 12, 0.85) !important;
+  border-color: rgba(139, 0, 50, 0.1) !important;
+}
+
+/* Карточки авто */
+body.dark-elegant-mode .car-card {
+  background: linear-gradient(
+    145deg,
+    rgba(15, 15, 22, 0.8),
+    rgba(20, 20, 30, 0.6)
+  ) !important;
+  border-color: rgba(139, 0, 50, 0.12) !important;
+}
+
+body.dark-elegant-mode .car-card:hover {
+  border-color: rgba(204, 0, 58, 0.3) !important;
+  box-shadow: 0 8px 32px rgba(139, 0, 50, 0.15) !important;
+}
+
+/* Переход между темами */
+body::after,
+body::before {
+  transition: background 0.5s ease, background-image 0.5s ease;
 }
