@@ -100,22 +100,18 @@ export default function Home() {
 
   const loadStats = async () => {
     try {
-      const [availableResult, soldResult, settingsResult, allCarsResult] = await Promise.all([
+      const [availableResult, soldResult, settingsResult] = await Promise.all([
         supabase.from('cars').select('*', { count: 'exact', head: true }).eq('status', 'available'),
         supabase.from('cars').select('*', { count: 'exact', head: true }).eq('status', 'sold'),
-        supabase.from('settings').select('manual_sold_count').eq('id', 1).single(),
-        supabase.from('cars').select('brand').neq('status', 'sold')
+        supabase.from('settings').select('manual_sold_count').eq('id', 1).single()
       ]);
-
-      const premiumBrands = ['Mercedes-Benz', 'BMW', 'Porsche', 'Audi', 'Ferrari', 'Lamborghini', 'Bentley', 'Rolls-Royce', 'Maserati', 'Maybach'];
-      const premiumCount = allCarsResult.data?.filter(car => premiumBrands.includes(car.brand)).length || 0;
 
       setStats({
         total: availableResult.count || 0,
         available: availableResult.count || 0,
         sold: soldResult.count || 0,
         manualSold: settingsResult.data?.manual_sold_count || 0,
-        premium: premiumCount
+        premium: 0
       });
     } catch (error) {
       console.error('Error loading stats:', error);
@@ -176,12 +172,11 @@ export default function Home() {
     setSortOption(option);
     setShowSort(false);
     const tg = getTelegramWebApp();
-    if (tg) {
+    if (tg?.HapticFeedback) {
       tg.HapticFeedback.impactOccurred('light');
     }
   };
 
-  // Отправка заявки
   const handleSubmitRequest = () => {
     if (!requestBrand.trim() && !requestBudget.trim() && !requestComment.trim()) {
       return;
@@ -189,7 +184,6 @@ export default function Home() {
 
     const tg = getTelegramWebApp();
     
-    // Формируем сообщение
     let message = `🔥 ЗАЯВКА НА ПОДБОР АВТО\n\n`;
     
     if (requestBrand.trim()) {
@@ -213,7 +207,7 @@ export default function Home() {
     if (tg) {
       try {
         tg.openTelegramLink(tgLink);
-        tg.HapticFeedback.notificationOccurred('success');
+        tg.HapticFeedback?.notificationOccurred('success');
       } catch {
         window.location.href = tgLink;
       }
@@ -221,7 +215,6 @@ export default function Home() {
       window.location.href = tgLink;
     }
 
-    // Закрываем форму и очищаем поля
     setShowRequestForm(false);
     setRequestBrand('');
     setRequestBudget('');
@@ -251,7 +244,6 @@ export default function Home() {
     <div className="min-h-screen pb-20">
       {/* Hero секция */}
       <div className="relative pt-14 pb-1">
-        {/* Шапка с кнопками по углам */}
         <div className="flex items-center justify-between px-3 mb-1">
           <button
             onClick={handleTelegram}
@@ -315,7 +307,6 @@ export default function Home() {
             <div className="text-xl font-bold text-white">{totalSold}</div>
             <div className="text-[8px] text-tg-hint uppercase tracking-wider font-medium">Продано</div>
           </button>
-          {/* Кнопка Заявка */}
           <button 
             onClick={() => setShowRequestForm(true)}
             className="bg-white/5 backdrop-blur-sm rounded-xl py-2.5 px-2 text-center border border-white/10 transition-all duration-300 active:scale-95 hover:scale-[1.02] hover:border-green-500/40 hover:bg-white/10"
@@ -328,9 +319,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Каталог секция */}
+      {/* Каталог */}
       <div className="pt-2 border-t border-tg-accent/10">
-        {/* Вкладки статусов */}
         <div className="px-3 pb-2">
           <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
             {statusButtons.map((status) => (
@@ -346,7 +336,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Поиск + Кнопки */}
         <div className="px-3 pb-2 flex gap-2">
           <input
             type="text"
@@ -359,7 +348,6 @@ export default function Home() {
           <button
             onClick={() => setViewMode(viewMode === 'single' ? 'double' : 'single')}
             className="refined-icon-button group"
-            aria-label="Переключить вид"
           >
             {viewMode === 'single' ? (
               <Grid2X2 className="w-5 h-5 text-tg-accent transition-all group-hover:rotate-90 group-hover:scale-110 duration-300" />
@@ -368,17 +356,14 @@ export default function Home() {
             )}
           </button>
 
-          {/* Кнопка сортировки */}
           <button
             onClick={() => setShowSort(true)}
             className="refined-icon-button group relative"
-            aria-label="Сортировка"
           >
             <ArrowUpDown className="w-5 h-5 text-tg-accent transition-all group-hover:scale-110 duration-300" />
           </button>
         </div>
 
-        {/* Индикатор сортировки */}
         <div className="px-3 pb-2">
           <div className="flex items-center gap-2 text-xs text-tg-hint">
             <span>Сортировка:</span>
@@ -386,7 +371,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Список машин */}
         <div className="px-3 pt-1">
           <div className="max-w-3xl mx-auto">
             {loading ? (
@@ -447,7 +431,7 @@ export default function Home() {
                 onClick={() => setShowSort(false)}
                 className="w-9 h-9 rounded-full bg-tg-secondary-bg flex items-center justify-center active:scale-95 transition-transform"
               >
-                <span className="text-xl">×</span>
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -514,7 +498,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* Модальное окно формы заявки */}
+      {/* Модальное окно формы заявки - ИСПРАВЛЕНЫ ИНПУТЫ */}
       {showRequestForm && (
         <div 
           className="fixed inset-0 z-50 flex items-end justify-center animate-fade-in"
@@ -551,7 +535,6 @@ export default function Home() {
             </p>
 
             <div className="space-y-3">
-              {/* Марка/Модель */}
               <div>
                 <label className="block text-xs text-tg-hint mb-1.5 uppercase tracking-wider">
                   Марка / Модель
@@ -561,11 +544,15 @@ export default function Home() {
                   value={requestBrand}
                   onChange={(e) => setRequestBrand(e.target.value)}
                   placeholder="Например: BMW X5, Mercedes GLE"
-                  className="w-full px-4 py-3 rounded-xl bg-tg-secondary-bg/50 border border-tg-hint/20 text-white text-sm placeholder:text-tg-hint/50 focus:border-green-500/50 focus:outline-none transition-colors"
+                  className="w-full px-4 py-3 rounded-xl border border-tg-hint/30 text-white text-base placeholder:text-tg-hint/50 focus:border-green-500/50 focus:outline-none transition-colors"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    color: '#FFFFFF',
+                    caretColor: '#22c55e'
+                  }}
                 />
               </div>
 
-              {/* Бюджет */}
               <div>
                 <label className="block text-xs text-tg-hint mb-1.5 uppercase tracking-wider">
                   Бюджет
@@ -575,11 +562,15 @@ export default function Home() {
                   value={requestBudget}
                   onChange={(e) => setRequestBudget(e.target.value)}
                   placeholder="Например: до 5 млн, 3-7 млн"
-                  className="w-full px-4 py-3 rounded-xl bg-tg-secondary-bg/50 border border-tg-hint/20 text-white text-sm placeholder:text-tg-hint/50 focus:border-green-500/50 focus:outline-none transition-colors"
+                  className="w-full px-4 py-3 rounded-xl border border-tg-hint/30 text-white text-base placeholder:text-tg-hint/50 focus:border-green-500/50 focus:outline-none transition-colors"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    color: '#FFFFFF',
+                    caretColor: '#22c55e'
+                  }}
                 />
               </div>
 
-              {/* Год */}
               <div>
                 <label className="block text-xs text-tg-hint mb-1.5 uppercase tracking-wider">
                   Год выпуска (от)
@@ -589,11 +580,15 @@ export default function Home() {
                   value={requestYear}
                   onChange={(e) => setRequestYear(e.target.value)}
                   placeholder="Например: 2020"
-                  className="w-full px-4 py-3 rounded-xl bg-tg-secondary-bg/50 border border-tg-hint/20 text-white text-sm placeholder:text-tg-hint/50 focus:border-green-500/50 focus:outline-none transition-colors"
+                  className="w-full px-4 py-3 rounded-xl border border-tg-hint/30 text-white text-base placeholder:text-tg-hint/50 focus:border-green-500/50 focus:outline-none transition-colors"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    color: '#FFFFFF',
+                    caretColor: '#22c55e'
+                  }}
                 />
               </div>
 
-              {/* Комментарий */}
               <div>
                 <label className="block text-xs text-tg-hint mb-1.5 uppercase tracking-wider">
                   Пожелания
@@ -603,11 +598,15 @@ export default function Home() {
                   onChange={(e) => setRequestComment(e.target.value)}
                   placeholder="Цвет, комплектация, пробег и т.д."
                   rows={3}
-                  className="w-full px-4 py-3 rounded-xl bg-tg-secondary-bg/50 border border-tg-hint/20 text-white text-sm placeholder:text-tg-hint/50 focus:border-green-500/50 focus:outline-none transition-colors resize-none"
+                  className="w-full px-4 py-3 rounded-xl border border-tg-hint/30 text-white text-base placeholder:text-tg-hint/50 focus:border-green-500/50 focus:outline-none transition-colors resize-none"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    color: '#FFFFFF',
+                    caretColor: '#22c55e'
+                  }}
                 />
               </div>
 
-              {/* Кнопка отправки */}
               <button
                 onClick={handleSubmitRequest}
                 disabled={!requestBrand.trim() && !requestBudget.trim() && !requestComment.trim()}

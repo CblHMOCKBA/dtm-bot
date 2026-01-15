@@ -101,25 +101,26 @@ body {
   background-color: #04030E;
 }
 
-/* Фоновое изображение через псевдоэлемент - ФИКСИРОВАННЫЙ РАЗМЕР */
+/* Фоновое изображение - АБСОЛЮТНО ФИКСИРОВАННЫЙ РАЗМЕР */
 body::after {
   content: '';
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
-  /* svh = small viewport height - размер КАК ПРИ ОТКРЫТОЙ КЛАВИАТУРЕ */
-  /* Это гарантирует что фон НЕ будет меняться */
-  height: 100svh;
-  min-height: 100%;
+  /* Фиксированная высота - НЕ МЕНЯЕТСЯ НИКОГДА */
+  height: 100vh;
+  height: 100dvh;
   background-image: url('/dtm-background.jpg');
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
+  background-attachment: fixed;
   z-index: -2;
   pointer-events: none;
-  /* Отключаем любые перерасчёты */
-  contain: strict;
+  /* Полностью отключаем реакцию на изменения viewport */
+  transform: translateZ(0);
+  will-change: auto;
 }
 
 body::before {
@@ -128,10 +129,9 @@ body::before {
   top: 0;
   left: 0;
   width: 100vw;
-  /* svh = small viewport height */
-  height: 100svh;
-  min-height: 100%;
-  /* Затемнение фона - видно но не слепит */
+  height: 100vh;
+  height: 100dvh;
+  /* Затемнение фона */
   background: 
     radial-gradient(ellipse at top right, rgba(204, 0, 58, 0.08) 0%, transparent 50%),
     linear-gradient(180deg, 
@@ -139,10 +139,17 @@ body::before {
       rgba(4, 3, 14, 0.5) 50%,
       rgba(4, 3, 14, 0.6) 100%
     );
+  background-attachment: fixed;
   pointer-events: none;
   z-index: 0;
-  /* Отключаем любые перерасчёты */
-  contain: strict;
+  transform: translateZ(0);
+}
+
+/* Блокируем resize при клавиатуре */
+@supports (height: 100dvh) {
+  body::after, body::before {
+    height: 100dvh;
+  }
 }
 
 /* Racing stripes */

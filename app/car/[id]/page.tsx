@@ -24,7 +24,6 @@ export default function CarDetailPage() {
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   
-  // Drag state для галереи
   const isDragging = useRef(false);
   const startX = useRef(0);
   const scrollLeft = useRef(0);
@@ -54,7 +53,6 @@ export default function CarDetailPage() {
     };
   }, [router, params.id, fromSold, navigateBack]);
 
-  // Mouse drag handlers для галереи
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (!scrollRef.current) return;
     isDragging.current = true;
@@ -94,7 +92,6 @@ export default function CarDetailPage() {
       if (error) throw error;
       setCar(data);
 
-      // Загружаем другие авто (кроме текущего)
       const { data: others } = await supabase
         .from('cars')
         .select('*')
@@ -127,19 +124,38 @@ export default function CarDetailPage() {
   };
 
   const handleContact = () => {
-    if (car) {
-      const message = `Здравствуйте! Заинтересовался автомобилем:\n\n🚗 ${car.brand} ${car.model}\n📅 Год: ${car.year}\n💰 Цена: ${formatPrice(car.price)}\n📍 Пробег: ${formatMileage(car.mileage)}\n\nХочу узнать подробности!`;
-      const encodedMessage = encodeURIComponent(message);
-      window.open(`https://t.me/dtm_moscow?text=${encodedMessage}`, '_blank');
+    if (!car) return;
+    
+    const tg = getTelegramWebApp();
+    const priceFormatted = new Intl.NumberFormat('ru-RU').format(car.price) + ' ₽';
+    const mileageFormatted = car.mileage.toLocaleString('ru-RU') + ' км';
+    
+    const message = `Здравствуйте! Интересует автомобиль:
+
+🚗 ${car.brand} ${car.model}
+📅 Год: ${car.year}
+💰 Цена: ${priceFormatted}
+📍 Пробег: ${mileageFormatted}
+
+Хочу узнать подробности!`;
+
+    const encodedMessage = encodeURIComponent(message);
+    const tgLink = `https://t.me/${telegramUsername}?text=${encodedMessage}`;
+    
+    if (tg) {
+      try {
+        tg.openTelegramLink(tgLink);
+      } catch {
+        window.location.href = tgLink;
+      }
+    } else {
+      window.location.href = tgLink;
     }
   };
 
   const handleCall = () => {
-    window.open(`tel:${phoneNumber.replace(/\s+/g, '')}`, '_blank');
-  };
-
-  const handleTelegram = () => {
-    window.open(`https://t.me/${telegramUsername}`, '_blank');
+    const phoneClean = phoneNumber.replace(/\s+/g, '').replace(/[()-]/g, '');
+    window.open(`tel:${phoneClean}`, '_blank');
   };
 
   const handleShare = () => {
@@ -165,7 +181,7 @@ export default function CarDetailPage() {
     return (
       <div className="min-h-screen">
         <div className="animate-pulse">
-          <div className="h-16 bg-black/30 border-b border-tg-hint/10"></div>
+          <div className="h-14 bg-black/30 border-b border-tg-hint/10"></div>
           <div className="aspect-[4/3] bg-black/30 relative overflow-hidden">
             <div className="skeleton-shimmer absolute inset-0" />
           </div>
@@ -173,8 +189,6 @@ export default function CarDetailPage() {
             <div className="skeleton-text h-6 w-3/4 rounded"></div>
             <div className="skeleton-price h-10 w-1/2 rounded-lg"></div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="skeleton h-20 rounded-xl"></div>
-              <div className="skeleton h-20 rounded-xl"></div>
               <div className="skeleton h-20 rounded-xl"></div>
               <div className="skeleton h-20 rounded-xl"></div>
             </div>
@@ -188,8 +202,8 @@ export default function CarDetailPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="text-6xl mb-4">🚗</div>
-          <div className="text-tg-hint text-lg">Автомобиль не найден</div>
+          <div className="text-5xl mb-4">🚗</div>
+          <div className="text-tg-hint text-base">Автомобиль не найден</div>
         </div>
       </div>
     );
@@ -199,7 +213,6 @@ export default function CarDetailPage() {
   const hasValidPhotos = car.photos && car.photos.length > 0 && car.photos.some((_, index) => !imageErrors.has(index));
   const isSold = car.status === 'sold';
 
-  // Форматируем трансмиссию
   const getTransmissionLabel = (trans?: string) => {
     if (!trans) return null;
     const t = trans.toLowerCase();
@@ -210,7 +223,6 @@ export default function CarDetailPage() {
     return trans;
   };
 
-  // Форматируем привод
   const getDriveLabel = (drive?: string) => {
     if (!drive) return null;
     const d = drive.toLowerCase();
@@ -222,24 +234,14 @@ export default function CarDetailPage() {
 
   return (
     <div className="min-h-screen pb-24 relative">
-      {/* Header */}
+      {/* Header - ТОЛЬКО DTM логотип, без кнопок */}
       <div className="sticky top-0 z-30 border-b border-tg-accent/15"
         style={{
           background: 'linear-gradient(135deg, rgba(15, 14, 24, 0.5), rgba(26, 25, 37, 0.4))',
           backdropFilter: 'blur(10px)'
         }}
       >
-        <div className="flex items-center justify-between px-4 py-3">
-          {/* Кнопка Telegram слева */}
-          <button
-            onClick={handleTelegram}
-            className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-tg-accent/50 hover:bg-white/10 group"
-            aria-label="Написать в Telegram"
-          >
-            <MessageCircle className="w-5 h-5 text-white group-hover:text-tg-accent transition-colors" />
-          </button>
-
-          {/* DTM по центру */}
+        <div className="flex items-center justify-center px-4 py-3">
           <h1 
             className="text-2xl font-black tracking-[0.15em]"
             style={{
@@ -248,19 +250,10 @@ export default function CarDetailPage() {
               textShadow: '0 0 20px rgba(255, 255, 255, 0.2)'
             }}
           >DTM</h1>
-
-          {/* Кнопка звонка справа */}
-          <button
-            onClick={handleCall}
-            className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-tg-accent/50 hover:bg-white/10 group"
-            aria-label="Позвонить"
-          >
-            <Phone className="w-5 h-5 text-white group-hover:text-tg-accent transition-colors" />
-          </button>
         </div>
       </div>
 
-      {/* Галерея фото со свайпом */}
+      {/* Галерея фото */}
       <div className="relative aspect-[4/3] bg-black/30 overflow-hidden">
         {hasValidPhotos ? (
           <>
@@ -290,7 +283,6 @@ export default function CarDetailPage() {
               ))}
             </div>
 
-            {/* Эко бейдж для электрокаров */}
             {isElectric && (
               <div className="absolute top-4 right-4 z-10">
                 <div className="premium-badge flex items-center gap-1">
@@ -303,44 +295,41 @@ export default function CarDetailPage() {
           <div className="w-full h-full flex flex-col items-center justify-center text-tg-hint bg-gradient-to-br from-tg-secondary-bg via-tg-bg to-tg-secondary-bg">
             <div className="relative">
               <div className="absolute inset-0 bg-tg-accent/20 blur-2xl animate-pulse"></div>
-              <svg className="w-24 h-24 text-tg-accent relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-20 h-20 text-tg-accent relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
-            <p className="text-sm mt-4 font-bold uppercase tracking-wider text-white">Фото скоро появится</p>
+            <p className="text-sm mt-3 font-bold uppercase tracking-wider text-white">Фото скоро появится</p>
           </div>
         )}
       </div>
 
       {/* Информация о машине */}
       <div className="px-4 pt-4 space-y-4">
-        {/* Название и год */}
         <div>
-          <h1 className="text-xl font-bold text-white">
+          <h1 className="text-lg font-bold text-white">
             {car.brand} {car.model}, {car.year}
           </h1>
         </div>
 
-        {/* Цена */}
-        <div className="text-3xl font-bold text-white">
-          {formatPrice(car.price)}
+        <div className="text-2xl font-bold text-white">
+          {new Intl.NumberFormat('ru-RU').format(car.price)} ₽
         </div>
 
-        {/* Компактные характеристики - сетка 2x2 как на auto.ru */}
+        {/* Характеристики */}
         <div className="border-t border-tg-hint/20 pt-4">
-          <h3 className="text-base font-bold text-white mb-3">Характеристики</h3>
+          <h3 className="text-sm font-bold text-white mb-2">Характеристики</h3>
           
-          <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-            {/* Мощность */}
+          <div className="grid grid-cols-2 gap-x-3 gap-y-2">
             {car.specs?.power && (
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-tg-secondary-bg flex items-center justify-center flex-shrink-0">
-                  <Gauge className="w-4 h-4 text-tg-accent" />
+              <div className="flex items-start gap-2">
+                <div className="w-7 h-7 rounded-lg bg-tg-secondary-bg flex items-center justify-center flex-shrink-0">
+                  <Gauge className="w-3.5 h-3.5 text-tg-accent" />
                 </div>
                 <div>
-                  <div className="font-bold text-sm text-white">{car.specs.power}</div>
-                  <div className="text-xs text-tg-hint">
+                  <div className="font-bold text-xs text-white">{car.specs.power}</div>
+                  <div className="text-[10px] text-tg-hint">
                     {car.specs?.engine && `${car.specs.engine}, `}
                     {car.specs?.fuel || 'Бензин'}
                   </div>
@@ -348,64 +337,60 @@ export default function CarDetailPage() {
               </div>
             )}
 
-            {/* Коробка */}
             {car.specs?.transmission && (
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-tg-secondary-bg flex items-center justify-center flex-shrink-0">
-                  <Settings2 className="w-4 h-4 text-tg-accent" />
+              <div className="flex items-start gap-2">
+                <div className="w-7 h-7 rounded-lg bg-tg-secondary-bg flex items-center justify-center flex-shrink-0">
+                  <Settings2 className="w-3.5 h-3.5 text-tg-accent" />
                 </div>
                 <div>
-                  <div className="font-bold text-sm text-white">{getTransmissionLabel(car.specs.transmission)}</div>
-                  <div className="text-xs text-tg-hint">коробка</div>
+                  <div className="font-bold text-xs text-white">{getTransmissionLabel(car.specs.transmission)}</div>
+                  <div className="text-[10px] text-tg-hint">коробка</div>
                 </div>
               </div>
             )}
 
-            {/* Привод */}
             {car.specs?.drive && (
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-tg-secondary-bg flex items-center justify-center flex-shrink-0">
-                  <CarIcon className="w-4 h-4 text-tg-accent" />
+              <div className="flex items-start gap-2">
+                <div className="w-7 h-7 rounded-lg bg-tg-secondary-bg flex items-center justify-center flex-shrink-0">
+                  <CarIcon className="w-3.5 h-3.5 text-tg-accent" />
                 </div>
                 <div>
-                  <div className="font-bold text-sm text-white">{getDriveLabel(car.specs.drive)}</div>
-                  <div className="text-xs text-tg-hint">привод</div>
+                  <div className="font-bold text-xs text-white">{getDriveLabel(car.specs.drive)}</div>
+                  <div className="text-[10px] text-tg-hint">привод</div>
                 </div>
               </div>
             )}
 
-            {/* Цвет */}
             {car.specs?.color && (
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-tg-secondary-bg flex items-center justify-center flex-shrink-0">
-                  <Palette className="w-4 h-4 text-tg-accent" />
+              <div className="flex items-start gap-2">
+                <div className="w-7 h-7 rounded-lg bg-tg-secondary-bg flex items-center justify-center flex-shrink-0">
+                  <Palette className="w-3.5 h-3.5 text-tg-accent" />
                 </div>
                 <div>
-                  <div className="font-bold text-sm text-white">{car.specs.color}</div>
-                  <div className="text-xs text-tg-hint">цвет</div>
+                  <div className="font-bold text-xs text-white">{car.specs.color}</div>
+                  <div className="text-[10px] text-tg-hint">цвет</div>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Дополнительные характеристики в строку */}
-          <div className="mt-4 space-y-2 text-sm">
+          <div className="mt-3 space-y-1.5 text-sm">
             {car.specs?.body_type && (
-              <div className="flex justify-between py-2 border-b border-tg-hint/10">
-                <span className="text-tg-hint">Кузов</span>
-                <span className="font-medium text-white">{car.specs.body_type}</span>
+              <div className="flex justify-between py-1.5 border-b border-tg-hint/10">
+                <span className="text-tg-hint text-xs">Кузов</span>
+                <span className="font-medium text-white text-xs">{car.specs.body_type}</span>
               </div>
             )}
             {car.mileage > 0 && (
-              <div className="flex justify-between py-2 border-b border-tg-hint/10">
-                <span className="text-tg-hint">Пробег</span>
-                <span className="font-medium text-white">{formatMileage(car.mileage)}</span>
+              <div className="flex justify-between py-1.5 border-b border-tg-hint/10">
+                <span className="text-tg-hint text-xs">Пробег</span>
+                <span className="font-medium text-white text-xs">{car.mileage.toLocaleString('ru-RU')} км</span>
               </div>
             )}
           </div>
         </div>
 
-        {/* Описание */}
+        {/* Описание - УЛУЧШЕННОЕ */}
         {car.description && car.description.trim() && (
           <div 
             className="pt-4 mt-4 -mx-4 px-4 pb-4"
@@ -417,39 +402,42 @@ export default function CarDetailPage() {
             <h3 className="text-base font-bold text-white mb-3">Описание</h3>
             <div className="relative">
               <p 
-                className={`text-[15px] text-white/80 leading-relaxed whitespace-pre-wrap transition-all duration-300 ${
+                className={`text-[15px] text-white/85 leading-relaxed whitespace-pre-wrap transition-all duration-300 ${
                   !descriptionExpanded && car.description.length > 200 ? 'line-clamp-4' : ''
                 }`}
-                style={{ 
-                  letterSpacing: '0.01em'
-                }}
               >
                 {car.description}
               </p>
               
-              {/* Градиент и кнопка "показать больше" */}
+              {/* Градиент затухания */}
               {car.description.length > 200 && !descriptionExpanded && (
                 <div 
-                  className="absolute bottom-0 left-0 right-0 h-12 pointer-events-none"
+                  className="absolute bottom-0 left-0 right-0 h-16 pointer-events-none"
                   style={{
                     background: 'linear-gradient(transparent, rgba(4, 3, 14, 0.98))'
                   }}
                 />
               )}
               
+              {/* Кнопка показать больше - ЯРКАЯ И БОЛЬШАЯ */}
               {car.description.length > 200 && (
                 <button
                   onClick={() => setDescriptionExpanded(!descriptionExpanded)}
-                  className="mt-3 flex items-center gap-1.5 text-tg-accent text-sm font-medium transition-all active:scale-95"
+                  className="mt-4 py-3 px-5 rounded-xl flex items-center gap-2 font-bold text-sm transition-all active:scale-95"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(204, 0, 58, 0.3), rgba(204, 0, 58, 0.2))',
+                    border: '1px solid rgba(204, 0, 58, 0.5)',
+                    color: '#FF4D7D'
+                  }}
                 >
                   {descriptionExpanded ? (
                     <>
-                      <ChevronUp className="w-4 h-4" />
-                      Скрыть
+                      <ChevronUp className="w-5 h-5" />
+                      Скрыть описание
                     </>
                   ) : (
                     <>
-                      <ChevronDown className="w-4 h-4" />
+                      <ChevronDown className="w-5 h-5" />
                       Показать полностью
                     </>
                   )}
@@ -462,8 +450,8 @@ export default function CarDetailPage() {
         {/* Другие автомобили */}
         {otherCars.length > 0 && (
           <div className="border-t border-tg-hint/20 pt-4">
-            <h3 className="text-base font-bold text-white mb-3">Другие автомобили</h3>
-            <div className="grid grid-cols-1 gap-4">
+            <h3 className="text-sm font-bold text-white mb-3">Другие автомобили</h3>
+            <div className="grid grid-cols-1 gap-3">
               {otherCars.map((otherCar) => (
                 <CarCard 
                   key={otherCar.id} 
@@ -476,7 +464,7 @@ export default function CarDetailPage() {
         )}
       </div>
 
-      {/* Закреплённые кнопки снизу */}
+      {/* Кнопки снизу */}
       {!isSold && (
         <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-tg-accent/15 px-4 py-3"
           style={{
@@ -487,7 +475,7 @@ export default function CarDetailPage() {
           <div className="grid grid-cols-2 gap-3 max-w-lg mx-auto">
             <button
               onClick={handleContact}
-              className="flex items-center justify-center gap-2 py-3.5 rounded-xl transition-all active:scale-95 overflow-hidden"
+              className="flex items-center justify-center gap-2 py-3 rounded-xl transition-all active:scale-95 overflow-hidden"
               style={{
                 background: 'linear-gradient(135deg, #DC0000, #CC003A, #990029)',
                 boxShadow: '0 4px 15px rgba(204, 0, 58, 0.3)',
@@ -498,7 +486,7 @@ export default function CarDetailPage() {
             </button>
             <button
               onClick={handleCall}
-              className="flex items-center justify-center gap-2 py-3.5 rounded-xl border border-tg-hint/30 transition-all active:scale-95 hover:border-tg-accent/50 overflow-hidden"
+              className="flex items-center justify-center gap-2 py-3 rounded-xl border border-tg-hint/30 transition-all active:scale-95 hover:border-tg-accent/50 overflow-hidden"
               style={{
                 background: 'rgba(255, 255, 255, 0.03)',
               }}
