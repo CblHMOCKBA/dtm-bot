@@ -122,14 +122,16 @@ export default function CarDetailPage() {
     }
   };
 
-  // ИСПРАВЛЕННАЯ функция - генерация сообщения с данными авто
+  // ИСПРАВЛЕННАЯ функция - используем Telegram WebApp API
   const handleContact = () => {
     if (!car) return;
+    
+    const tg = getTelegramWebApp();
     
     // Форматируем цену
     const priceFormatted = new Intl.NumberFormat('ru-RU').format(car.price) + ' ₽';
     
-    // Форматируем пробег
+    // Форматируем пробег  
     const mileageFormatted = car.mileage.toLocaleString('ru-RU') + ' км';
     
     // Собираем сообщение
@@ -142,15 +144,41 @@ export default function CarDetailPage() {
 
 Хочу узнать подробности!`;
 
-    // Кодируем и открываем Telegram
+    // Кодируем сообщение для URL
     const encodedMessage = encodeURIComponent(message);
-    const tgUrl = `https://t.me/${telegramUsername}?text=${encodedMessage}`;
     
-    window.open(tgUrl, '_blank');
+    // Формируем ссылку
+    const tgLink = `https://t.me/${telegramUsername}?text=${encodedMessage}`;
+    
+    // Используем Telegram WebApp API для открытия ссылки
+    if (tg) {
+      try {
+        tg.openTelegramLink(tgLink);
+      } catch (error) {
+        console.error('Error opening telegram link:', error);
+        // Fallback - пробуем через window.location
+        window.location.href = tgLink;
+      }
+    } else {
+      // Если не в Telegram - открываем напрямую
+      window.location.href = tgLink;
+    }
   };
 
   const handleCall = () => {
-    window.open(`tel:${phoneNumber.replace(/\s+/g, '')}`, '_blank');
+    const tg = getTelegramWebApp();
+    const phoneClean = phoneNumber.replace(/\s+/g, '').replace(/[()-]/g, '');
+    
+    if (tg) {
+      // В Telegram Mini App используем openLink для телефона
+      try {
+        tg.openLink(`tel:${phoneClean}`);
+      } catch {
+        window.location.href = `tel:${phoneClean}`;
+      }
+    } else {
+      window.location.href = `tel:${phoneClean}`;
+    }
   };
 
   const handleShare = () => {

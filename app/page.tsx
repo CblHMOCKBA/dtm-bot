@@ -26,7 +26,7 @@ export default function Home() {
   const [stats, setStats] = useState({ total: 0, sold: 0, manualSold: 0, available: 0, premium: 0 });
   const [showSort, setShowSort] = useState(false);
   const [sortOption, setSortOption] = useState<SortOption>('date_desc');
-  const [viewMode, setViewMode] = useState<'single' | 'double'>('single');
+  const [viewMode, setViewMode] = useState<'single' | 'double'>('double');
   const [phoneNumber, setPhoneNumber] = useState('+7 980 679 0176');
   const [telegramUsername, setTelegramUsername] = useState('dtm_moscow');
   const [marqueeText, setMarqueeText] = useState('🔥 ГАРАНТИЯ КАЧЕСТВА • 💎 ПРЕМИУМ СЕРВИС • ⭐ ЛУЧШИЕ ЦЕНЫ');
@@ -118,12 +118,10 @@ export default function Home() {
   const applyFiltersAndSort = () => {
     let filtered = [...cars];
 
-    // Применяем фильтр по статусу
     if (statusFilter !== 'all') {
       filtered = filtered.filter(car => car.status === statusFilter);
     }
 
-    // Применяем поиск
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       filtered = filtered.filter(car => 
@@ -132,7 +130,6 @@ export default function Home() {
       );
     }
 
-    // Применяем сортировку
     filtered.sort((a, b) => {
       switch (sortOption) {
         case 'price_asc':
@@ -151,11 +148,30 @@ export default function Home() {
   };
 
   const handleCall = () => {
-    window.open(`tel:${phoneNumber.replace(/\s+/g, '')}`, '_blank');
+    const tg = getTelegramWebApp();
+    const phoneClean = phoneNumber.replace(/\s+/g, '').replace(/[()-]/g, '');
+    if (tg) {
+      try {
+        tg.openLink(`tel:${phoneClean}`);
+      } catch {
+        window.location.href = `tel:${phoneClean}`;
+      }
+    } else {
+      window.location.href = `tel:${phoneClean}`;
+    }
   };
 
   const handleTelegram = () => {
-    window.open(`https://t.me/${telegramUsername}`, '_blank');
+    const tg = getTelegramWebApp();
+    if (tg) {
+      try {
+        tg.openTelegramLink(`https://t.me/${telegramUsername}`);
+      } catch {
+        window.location.href = `https://t.me/${telegramUsername}`;
+      }
+    } else {
+      window.location.href = `https://t.me/${telegramUsername}`;
+    }
   };
 
   const handleSortSelect = (option: SortOption) => {
@@ -187,11 +203,10 @@ export default function Home() {
 
   return (
     <div className="min-h-screen pb-20">
-      {/* Hero секция - увеличен отступ сверху для TG UI */}
+      {/* Hero секция - увеличен отступ сверху pt-14 для TG UI */}
       <div className="relative pt-14 pb-1">
         {/* Шапка с кнопками по углам */}
         <div className="flex items-center justify-between px-3 mb-1">
-          {/* Кнопка Telegram слева */}
           <button
             onClick={handleTelegram}
             className="w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-[#29B6F6]/50 hover:bg-white/10 group"
@@ -200,7 +215,6 @@ export default function Home() {
             <MessageCircle className="w-5 h-5 text-white group-hover:text-[#29B6F6] transition-colors" />
           </button>
 
-          {/* Логотип DTM по центру */}
           <div className="text-center">
             <h1 
               className="text-2xl font-black tracking-[0.15em]"
@@ -220,7 +234,6 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Кнопка звонка справа */}
           <button
             onClick={handleCall}
             className="w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-[#CC003A]/50 hover:bg-white/10 group"
@@ -318,7 +331,7 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Индикатор текущей сортировки */}
+        {/* Индикатор сортировки */}
         <div className="px-3 pb-2">
           <div className="flex items-center gap-2 text-xs text-tg-hint">
             <span>Сортировка:</span>
@@ -392,7 +405,6 @@ export default function Home() {
             </div>
 
             <div className="space-y-2">
-              {/* По цене */}
               <div className="text-xs text-tg-hint uppercase tracking-wider mb-2 flex items-center gap-2">
                 <DollarSign className="w-4 h-4" />
                 По цене
@@ -422,10 +434,9 @@ export default function Home() {
                 <ArrowDown className="w-5 h-5" />
               </button>
 
-              {/* По дате */}
               <div className="text-xs text-tg-hint uppercase tracking-wider mb-2 mt-4 flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
-                По дате добавления
+                По дате
               </div>
 
               <button
