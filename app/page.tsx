@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Car, Phone, Heart, BarChart3, Settings, Grid2X2, LayoutGrid, FileText, MessageCircle, ArrowUpDown, ArrowUp, ArrowDown, Calendar, DollarSign, Send, X } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { Car, Phone, Heart, BarChart3, Settings, Grid2X2, LayoutGrid, FileText, MessageCircle, ArrowUpDown, ArrowUp, ArrowDown, Calendar, DollarSign, Send, X, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { isAdmin, getTelegramWebApp } from '@/lib/telegram';
 import { supabase } from '@/lib/supabase';
@@ -23,6 +23,8 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<'all' | CarStatus>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [searchResults, setSearchResults] = useState<CarType[]>([]);
   const [stats, setStats] = useState({ total: 0, sold: 0, manualSold: 0, available: 0, premium: 0 });
   const [showSort, setShowSort] = useState(false);
   const [showRequestForm, setShowRequestForm] = useState(false);
@@ -31,6 +33,7 @@ export default function Home() {
   const [phoneNumber, setPhoneNumber] = useState('+7 980 679 0176');
   const [telegramUsername, setTelegramUsername] = useState('dtm_moscow');
   const [marqueeText, setMarqueeText] = useState('🔥 ГАРАНТИЯ КАЧЕСТВА • 💎 ПРЕМИУМ СЕРВИС • ⭐ ЛУЧШИЕ ЦЕНЫ');
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Форма заявки
   const [requestBrand, setRequestBrand] = useState('');
@@ -57,6 +60,21 @@ export default function Home() {
   useEffect(() => {
     applyFiltersAndSort();
   }, [cars, statusFilter, searchQuery, sortOption]);
+
+  // Поиск для выпадающего списка
+  useEffect(() => {
+    if (searchQuery.trim() && searchFocused) {
+      const query = searchQuery.toLowerCase().trim();
+      const results = cars.filter(car => 
+        car.brand.toLowerCase().includes(query) ||
+        car.model.toLowerCase().includes(query) ||
+        `${car.brand} ${car.model}`.toLowerCase().includes(query)
+      ).slice(0, 6);
+      setSearchResults(results);
+    } else {
+      setSearchResults([]);
+    }
+  }, [searchQuery, cars, searchFocused]);
 
   const loadSettings = async () => {
     try {
@@ -177,6 +195,20 @@ export default function Home() {
     }
   };
 
+  const handleSearchResultClick = (carId: string) => {
+    setSearchFocused(false);
+    setSearchQuery('');
+    navigateForward();
+    router.push(`/car/${carId}`);
+  };
+
+  const handleSearchBlur = () => {
+    // Небольшая задержка чтобы успел сработать клик по результату
+    setTimeout(() => {
+      setSearchFocused(false);
+    }, 200);
+  };
+
   const handleSubmitRequest = () => {
     if (!requestBrand.trim() && !requestBudget.trim() && !requestComment.trim()) {
       return;
@@ -231,6 +263,13 @@ export default function Home() {
     }
   };
 
+  const formatPrice = (price: number) => {
+    if (price >= 1000000) {
+      return `${(price / 1000000).toFixed(1)} млн ₽`;
+    }
+    return new Intl.NumberFormat('ru-RU').format(price) + ' ₽';
+  };
+
   const statusButtons: { value: 'all' | CarStatus; label: string }[] = [
     { value: 'all', label: 'Все' },
     { value: 'available', label: 'В наличии' },
@@ -242,6 +281,15 @@ export default function Home() {
 
   return (
     <div className="min-h-screen pb-20">
+      {/* Затемнение при фокусе поиска */}
+      {searchFocused && (
+        <div 
+          className="fixed inset-0 z-40 transition-opacity duration-300"
+          style={{ background: 'rgba(0, 0, 0, 0.7)' }}
+          onClick={() => setSearchFocused(false)}
+        />
+      )}
+
       {/* Hero секция */}
       <div className="relative pt-14 pb-1">
         <div className="flex items-center justify-between px-3 mb-1">
@@ -294,24 +342,24 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Статистика */}
+        {/* Статистика - ИСПРАВЛЕНО выравнивание */}
         <div className="grid grid-cols-3 gap-2 px-3 mt-1 mb-2">
-          <div className="bg-white/5 backdrop-blur-sm rounded-xl py-2.5 px-2 text-center border border-white/10 hover:border-tg-accent/30 transition-all">
+          <div className="bg-white/5 backdrop-blur-sm rounded-xl py-2.5 px-2 text-center border border-white/10 hover:border-tg-accent/30 transition-all h-[72px] flex flex-col justify-center">
             <div className="text-xl font-bold text-tg-accent">{stats.available}</div>
             <div className="text-[8px] text-tg-hint uppercase tracking-wider font-medium">В наличии</div>
           </div>
           <button 
             onClick={() => { navigateForward(); router.push('/sold'); }}
-            className="bg-white/5 backdrop-blur-sm rounded-xl py-2.5 px-2 text-center border border-white/10 transition-all duration-300 active:scale-95 hover:scale-[1.02] hover:border-tg-accent/40 hover:bg-white/10"
+            className="bg-white/5 backdrop-blur-sm rounded-xl py-2.5 px-2 text-center border border-white/10 transition-all duration-300 active:scale-95 hover:scale-[1.02] hover:border-tg-accent/40 hover:bg-white/10 h-[72px] flex flex-col justify-center"
           >
             <div className="text-xl font-bold text-white">{totalSold}</div>
             <div className="text-[8px] text-tg-hint uppercase tracking-wider font-medium">Продано</div>
           </button>
           <button 
             onClick={() => setShowRequestForm(true)}
-            className="bg-white/5 backdrop-blur-sm rounded-xl py-2.5 px-2 text-center border border-white/10 transition-all duration-300 active:scale-95 hover:scale-[1.02] hover:border-green-500/40 hover:bg-white/10"
+            className="bg-white/5 backdrop-blur-sm rounded-xl py-2.5 px-2 text-center border border-white/10 transition-all duration-300 active:scale-95 hover:scale-[1.02] hover:border-green-500/40 hover:bg-white/10 h-[72px] flex flex-col justify-center"
           >
-            <div className="text-lg font-bold text-green-400 flex items-center justify-center">
+            <div className="text-xl font-bold text-green-400 flex items-center justify-center">
               <FileText className="w-5 h-5" />
             </div>
             <div className="text-[8px] text-tg-hint uppercase tracking-wider font-medium">Заявка</div>
@@ -336,14 +384,87 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="px-3 pb-2 flex gap-2">
-          <input
-            type="text"
-            placeholder="Марка, модель..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 refined-search-input text-sm"
-          />
+        {/* Поиск с выпадающим списком */}
+        <div className="px-3 pb-2 flex gap-2 relative">
+          <div className="flex-1 relative">
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Марка, модель..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setSearchFocused(true)}
+              onBlur={handleSearchBlur}
+              className={`w-full refined-search-input text-sm pr-10 transition-all duration-300 ${searchFocused ? 'relative z-50' : ''}`}
+              style={searchFocused ? { 
+                background: 'rgba(15, 14, 24, 0.98)',
+                borderColor: 'rgba(204, 0, 58, 0.5)'
+              } : {}}
+            />
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tg-hint pointer-events-none" />
+            
+            {/* Выпадающий список результатов */}
+            {searchFocused && searchResults.length > 0 && (
+              <div 
+                className="absolute top-full left-0 right-0 mt-2 rounded-xl overflow-hidden z-50 animate-fade-in"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(15, 14, 24, 0.98), rgba(26, 25, 37, 0.95))',
+                  border: '1px solid rgba(204, 0, 58, 0.3)',
+                  boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5)'
+                }}
+              >
+                {searchResults.map((car) => (
+                  <button
+                    key={car.id}
+                    onClick={() => handleSearchResultClick(car.id)}
+                    className="w-full flex items-center gap-3 p-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-b-0"
+                  >
+                    {/* Мини фото */}
+                    <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-tg-secondary-bg">
+                      {car.photos && car.photos[0] ? (
+                        <img 
+                          src={car.photos[0]} 
+                          alt={`${car.brand} ${car.model}`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Car className="w-6 h-6 text-tg-hint" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Инфо */}
+                    <div className="flex-1 text-left">
+                      <div className="text-white font-medium text-sm">
+                        {car.brand} {car.model}
+                      </div>
+                      <div className="text-tg-hint text-xs">
+                        {car.year} • {car.mileage.toLocaleString('ru-RU')} км
+                      </div>
+                      <div className="text-tg-accent font-bold text-sm mt-0.5">
+                        {formatPrice(car.price)}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Пустой результат */}
+            {searchFocused && searchQuery.trim() && searchResults.length === 0 && (
+              <div 
+                className="absolute top-full left-0 right-0 mt-2 rounded-xl p-4 z-50 text-center"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(15, 14, 24, 0.98), rgba(26, 25, 37, 0.95))',
+                  border: '1px solid rgba(204, 0, 58, 0.3)'
+                }}
+              >
+                <Car className="w-8 h-8 mx-auto mb-2 text-tg-hint opacity-50" />
+                <p className="text-tg-hint text-sm">Ничего не найдено</p>
+              </div>
+            )}
+          </div>
           
           <button
             onClick={() => setViewMode(viewMode === 'single' ? 'double' : 'single')}
@@ -498,7 +619,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* Модальное окно формы заявки - ИСПРАВЛЕНЫ ИНПУТЫ */}
+      {/* Модальное окно формы заявки */}
       {showRequestForm && (
         <div 
           className="fixed inset-0 z-50 flex items-end justify-center animate-fade-in"
