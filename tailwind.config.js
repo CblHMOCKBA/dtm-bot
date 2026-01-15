@@ -15,6 +15,7 @@ module.exports = {
         'tg-button': 'var(--tg-theme-button-color)',
         'tg-button-text': 'var(--tg-theme-button-text-color)',
         'tg-secondary-bg': 'var(--tg-theme-secondary-bg-color)',
+        'tg-accent': 'var(--tg-theme-accent)',
       },
     },
   },
