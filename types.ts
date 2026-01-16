@@ -106,6 +106,9 @@ export interface TelegramWebApp {
   sendData(data: string): void;
   openLink(url: string): void;
   openTelegramLink(url: string): void;
+  showAlert(message: string): void;
+  showConfirm(message: string, callback?: (confirmed: boolean) => void): void;
+  showPopup(params: { title?: string; message: string; buttons?: Array<{ id?: string; type?: string; text: string }> }, callback?: (buttonId: string) => void): void;
   // Telegram API 7.7+
   disableVerticalSwipes?(): void;
   enableVerticalSwipes?(): void;
