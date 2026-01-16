@@ -33,8 +33,9 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<'single' | 'double'>('double');
   const [phoneNumber, setPhoneNumber] = useState('+7 980 679 0176');
   const [telegramUsername, setTelegramUsername] = useState('dtm_moscow');
-  const [marqueeText, setMarqueeText] = useState('🔥 ГАРАНТИЯ КАЧЕСТВА • 💎 ПРЕМИУМ СЕРВИС • ⭐ ЛУЧШИЕ ЦЕНЫ');
   const [darkMode, setDarkMode] = useState(false);
+  const [selectedBrand, setSelectedBrand] = useState<string>('all');
+  const [showAllBrandsModal, setShowAllBrandsModal] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Форма заявки
@@ -77,7 +78,7 @@ export default function Home() {
 
   useEffect(() => {
     applyFiltersAndSort();
-  }, [cars, statusFilter, searchQuery, sortOption]);
+  }, [cars, statusFilter, searchQuery, sortOption, selectedBrand]);
 
   // Поиск для выпадающего списка
   useEffect(() => {
@@ -98,15 +99,12 @@ export default function Home() {
     try {
       const { data: settings } = await supabase
         .from('settings')
-        .select('phone, marquee_text, telegram')
+        .select('phone, telegram')
         .eq('id', 1)
         .single();
 
       if (settings?.phone && settings.phone.trim()) {
         setPhoneNumber(settings.phone);
-      }
-      if (settings?.marquee_text && settings.marquee_text.trim()) {
-        setMarqueeText(settings.marquee_text);
       }
       if (settings?.telegram && settings.telegram.trim()) {
         setTelegramUsername(settings.telegram.replace('@', ''));
@@ -159,6 +157,11 @@ export default function Home() {
 
     if (statusFilter !== 'all') {
       filtered = filtered.filter(car => car.status === statusFilter);
+    }
+
+    // Фильтр по марке
+    if (selectedBrand !== 'all') {
+      filtered = filtered.filter(car => car.brand === selectedBrand);
     }
 
     if (searchQuery.trim()) {
@@ -228,6 +231,39 @@ export default function Home() {
       tg.HapticFeedback.impactOccurred('medium');
     }
   };
+
+  // Подсчет марок и их количества
+  const getBrandCounts = () => {
+    const brandMap = new Map<string, number>();
+    
+    cars.forEach(car => {
+      if (car.status !== 'sold') {
+        const count = brandMap.get(car.brand) || 0;
+        brandMap.set(car.brand, count + 1);
+      }
+    });
+
+    // Сортируем по количеству (убывание)
+    return Array.from(brandMap.entries())
+      .map(([brand, count]) => ({ brand, count }))
+      .sort((a, b) => b.count - a.count);
+  };
+
+  const handleBrandSelect = (brand: string) => {
+    setSelectedBrand(brand);
+    setShowAllBrandsModal(false);
+    
+    const tg = getTelegramWebApp();
+    if (tg?.HapticFeedback) {
+      tg.HapticFeedback.impactOccurred('light');
+    }
+  };
+
+  // Получаем все марки с количеством
+  const brandCounts = getBrandCounts();
+  const topBrands = brandCounts.slice(0, 4); // ТОП-4 марки
+  const remainingBrandsCount = brandCounts.length - 4;
+  const totalCarsCount = cars.filter(car => car.status !== 'sold').length;
 
   const handleSubmitRequest = () => {
     if (!requestBrand.trim() && !requestBudget.trim() && !requestComment.trim()) {
@@ -357,16 +393,68 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Бегущая строка */}
-        <div className="relative overflow-hidden py-1 bg-gradient-to-r from-transparent via-tg-accent/5 to-transparent">
-          <div className="marquee-container">
-            <div className="marquee-content">
-              {[1, 2, 3].map((i) => (
-                <span key={i} className="mx-4 text-[10px] text-white/50 flex items-center gap-2 whitespace-nowrap">
-                  <span>{marqueeText}</span>
+        {/* Smart Pills - Фильтр по популярным маркам */}
+        <div className="relative overflow-hidden py-2 px-3 bg-gradient-to-r from-transparent via-tg-accent/5 to-transparent">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+            {/* Кнопка "Все" */}
+            <button
+              onClick={() => handleBrandSelect('all')}
+              className={`
+                flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap
+                transition-all duration-300 active:scale-95
+                ${selectedBrand === 'all'
+                  ? 'bg-gradient-to-r from-[#DC0000] to-[#CC003A] text-white border border-[#CC003A]/50 shadow-lg shadow-[#CC003A]/30'
+                  : 'bg-white/5 text-white/80 border border-white/10 hover:bg-white/10 hover:border-white/20'
+                }
+              `}
+            >
+              <span>Все</span>
+              <span className={`text-[10px] ${selectedBrand === 'all' ? 'text-white/90' : 'text-white/50'}`}>
+                {totalCarsCount}
+              </span>
+            </button>
+
+            {/* ТОП-4 марки */}
+            {topBrands.map(({ brand, count }) => (
+              <button
+                key={brand}
+                onClick={() => handleBrandSelect(brand)}
+                className={`
+                  flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap
+                  transition-all duration-300 active:scale-95
+                  ${selectedBrand === brand
+                    ? 'bg-gradient-to-r from-[#DC0000] to-[#CC003A] text-white border border-[#CC003A]/50 shadow-lg shadow-[#CC003A]/30'
+                    : 'bg-white/5 text-white/80 border border-white/10 hover:bg-white/10 hover:border-white/20'
+                  }
+                `}
+              >
+                <span>{brand}</span>
+                <span className={`text-[10px] ${selectedBrand === brand ? 'text-white/90' : 'text-white/50'}`}>
+                  {count}
                 </span>
-              ))}
-            </div>
+              </button>
+            ))}
+
+            {/* Кнопка "Ещё" если марок больше 4 */}
+            {remainingBrandsCount > 0 && (
+              <button
+                onClick={() => {
+                  setShowAllBrandsModal(true);
+                  const tg = getTelegramWebApp();
+                  if (tg?.HapticFeedback) {
+                    tg.HapticFeedback.impactOccurred('light');
+                  }
+                }}
+                className="
+                  flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap
+                  bg-white/5 text-white/80 border border-white/10 hover:bg-white/10 hover:border-tg-accent/30
+                  transition-all duration-300 active:scale-95
+                "
+              >
+                <span>Ещё</span>
+                <span className="text-[10px] text-tg-accent">+{remainingBrandsCount}</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -765,6 +853,87 @@ export default function Home() {
                 <Send className="w-5 h-5" />
                 <span>Отправить заявку</span>
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модальное окно "Все марки" */}
+      {showAllBrandsModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-end justify-center animate-fade-in"
+          style={{
+            background: 'rgba(4, 3, 14, 0.9)',
+            backdropFilter: 'blur(8px)'
+          }}
+          onClick={() => setShowAllBrandsModal(false)}
+        >
+          <div 
+            className="w-full max-w-md rounded-t-3xl p-5 animate-slide-up"
+            style={{
+              background: 'linear-gradient(135deg, rgba(15, 14, 24, 0.98), rgba(26, 25, 37, 0.95))',
+              backdropFilter: 'blur(20px)',
+              borderTop: '2px solid rgba(204, 0, 58, 0.5)',
+              boxShadow: '0 -10px 40px rgba(204, 0, 58, 0.2)',
+              maxHeight: '75vh',
+              overflowY: 'auto'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold brand-name text-tg-accent flex items-center gap-2">
+                🏷️ ВСЕ МАРКИ
+              </h2>
+              <button
+                onClick={() => setShowAllBrandsModal(false)}
+                className="w-9 h-9 rounded-full bg-tg-secondary-bg flex items-center justify-center active:scale-95 transition-transform hover:bg-tg-accent/20"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {/* Кнопка "Все" */}
+              <button
+                onClick={() => handleBrandSelect('all')}
+                className={`
+                  w-full flex items-center justify-between p-3 rounded-xl border transition-all active:scale-[0.98]
+                  ${selectedBrand === 'all'
+                    ? 'bg-gradient-to-r from-[#DC0000] to-[#CC003A] border-[#CC003A]/50 shadow-lg shadow-[#CC003A]/30'
+                    : 'bg-tg-secondary-bg/50 border-tg-hint/10 hover:border-tg-accent/30 hover:bg-tg-secondary-bg'
+                  }
+                `}
+              >
+                <span className="font-bold text-white">Все марки</span>
+                <span className={`text-sm font-semibold ${selectedBrand === 'all' ? 'text-white/90' : 'text-tg-hint'}`}>
+                  {totalCarsCount}
+                </span>
+              </button>
+
+              {/* Разделитель */}
+              <div className="h-px bg-gradient-to-r from-transparent via-tg-hint/20 to-transparent my-3" />
+
+              {/* Список всех марок по алфавиту */}
+              {brandCounts
+                .sort((a, b) => a.brand.localeCompare(b.brand))
+                .map(({ brand, count }) => (
+                  <button
+                    key={brand}
+                    onClick={() => handleBrandSelect(brand)}
+                    className={`
+                      w-full flex items-center justify-between p-3 rounded-xl border transition-all active:scale-[0.98]
+                      ${selectedBrand === brand
+                        ? 'bg-gradient-to-r from-[#DC0000] to-[#CC003A] border-[#CC003A]/50 shadow-lg shadow-[#CC003A]/30'
+                        : 'bg-tg-secondary-bg/50 border-tg-hint/10 hover:border-tg-accent/30 hover:bg-tg-secondary-bg'
+                      }
+                    `}
+                  >
+                    <span className="font-bold text-white">{brand}</span>
+                    <span className={`text-sm font-semibold ${selectedBrand === brand ? 'text-white/90' : 'text-tg-hint'}`}>
+                      {count}
+                    </span>
+                  </button>
+                ))}
             </div>
           </div>
         </div>
