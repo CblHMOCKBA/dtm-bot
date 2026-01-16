@@ -5,7 +5,7 @@ import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Car } from '@/types';
 import { getTelegramWebApp, shareCarLink } from '@/lib/telegram';
-import { sendTelegramMessage, openTelegramChat, makePhoneCall } from '@/lib/messaging';
+import { sendTelegramMessage, openTelegramChat } from '@/lib/messaging';
 import { Share2, Phone, MessageCircle, Zap, Gauge, Settings2, Palette, Car as CarIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatPrice, formatMileage } from '@/lib/formatters';
 import { useNavigation } from '@/components/NavigationProvider';
@@ -154,7 +154,7 @@ export default function CarDetailPage() {
     }
   };
 
-  // Обработчик кнопки "Позвонить"
+  // Обработчик кнопки "Позвонить" - ИСПРАВЛЕНО: прямой вызов как в контактах
   const handleCall = () => {
     const tg = getTelegramWebApp();
     
@@ -163,14 +163,7 @@ export default function CarDetailPage() {
       tg.HapticFeedback.impactOccurred('medium');
     }
     
-    const success = makePhoneCall(phoneNumber);
-    
-    if (!success) {
-      console.error('[Call] Не удалось совершить звонок');
-      if (tg?.showAlert) {
-        tg.showAlert('Не удалось совершить звонок. Проверьте настройки устройства.');
-      }
-    }
+    window.open(`tel:${phoneNumber.replace(/\s+/g, '').replace(/[()]/g, '').replace(/-/g, '')}`, '_blank');
   };
 
   const handleShare = () => {
