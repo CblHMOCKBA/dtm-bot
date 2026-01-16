@@ -623,10 +623,11 @@ export default function Home() {
               </div>
             ) : (
               <div className={`grid ${viewMode === 'single' ? 'grid-cols-1' : 'grid-cols-2'} gap-3 fade-in`}>
-                {filteredCars.map((car) => (
+                {filteredCars.map((car, index) => (
                   <CarCard 
                     key={car.id} 
-                    car={car} 
+                    car={car}
+                    priority={index < 6} // Первые 6 карточек (above the fold) грузятся быстрее
                     onClick={() => {
                       navigateForward();
                       router.push(`/car/${car.id}`);

@@ -9,32 +9,44 @@ import { useState, useRef, useEffect } from 'react';
 interface CarCardProps {
   car: Car;
   onClick?: () => void;
+  priority?: boolean; // Для первых карточек above the fold
 }
 
-// Создаём URL для thumbnail (Supabase image transformation)
-const getThumbnailUrl = (url: string): string => {
-  // Supabase Storage transformation: /object/public/ -> /render/image/public/ + params
+// Создаём оптимизированный URL для Supabase Storage
+const getOptimizedImageUrl = (url: string, options: { width?: number; quality?: number; format?: 'webp' | 'origin' } = {}): string => {
+  const { width = 400, quality = 80, format = 'webp' } = options;
+  
+  // Supabase Storage transformation
   if (url.includes('supabase.co/storage/v1/object/public/')) {
-    return url.replace(
-      '/storage/v1/object/public/',
-      '/storage/v1/render/image/public/'
-    ) + '?width=50&quality=20';
+    const baseUrl = url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/');
+    return `${baseUrl}?width=${width}&quality=${quality}${format === 'webp' ? '&format=webp' : ''}`;
   }
   return url;
 };
 
-// Компонент для фото с blur-up эффектом
-function BlurUpImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
+// Thumbnail для blur placeholder (маленький размер, низкое качество)
+const getThumbnailUrl = (url: string): string => {
+  return getOptimizedImageUrl(url, { width: 100, quality: 30, format: 'webp' });
+};
+
+// Основное фото для каталога (оптимизированный размер)
+const getCatalogImageUrl = (url: string): string => {
+  return getOptimizedImageUrl(url, { width: 400, quality: 80, format: 'webp' });
+};
+
+// Компонент для фото с blur-up эффектом и прогрессивной загрузкой
+function BlurUpImage({ src, alt, className, priority = false }: { src: string; alt: string; className?: string; priority?: boolean }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [showPlaceholder, setShowPlaceholder] = useState(true);
   const thumbnailUrl = getThumbnailUrl(src);
+  const optimizedUrl = getCatalogImageUrl(src);
   
   return (
     <div className="relative w-full h-full overflow-hidden">
-      {/* Placeholder - размытый thumbnail или градиент */}
+      {/* Placeholder - размытый thumbnail */}
       {showPlaceholder && (
         <div className="absolute inset-0 z-0">
-          {/* Пробуем загрузить thumbnail */}
+          {/* Загружаем маленький thumbnail для blur эффекта */}
           <img
             src={thumbnailUrl}
             alt=""
@@ -62,12 +74,12 @@ function BlurUpImage({ src, alt, className }: { src: string; alt: string; classN
         </div>
       )}
       
-      {/* Основное фото */}
+      {/* Основное оптимизированное фото */}
       <img
-        src={src}
+        src={optimizedUrl}
         alt={alt}
         className={`w-full h-full object-cover transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'} ${className || ''}`}
-        loading="lazy"
+        loading={priority ? 'eager' : 'lazy'}
         decoding="async"
         draggable={false}
         onLoad={() => {
@@ -80,10 +92,10 @@ function BlurUpImage({ src, alt, className }: { src: string; alt: string; classN
   );
 }
 
-export default function CarCard({ car, onClick }: CarCardProps) {
+export default function CarCard({ car, onClick, priority = false }: CarCardProps) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const [isAnimating, setIsAnimating] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(priority); // Priority карточки видны сразу
   const [hasInteracted, setHasInteracted] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -105,8 +117,10 @@ export default function CarCard({ car, onClick }: CarCardProps) {
   const hasMultiplePhotos = car.photos && car.photos.length > 1;
   const photoCount = car.photos?.length || 0;
 
-  // Intersection Observer - грузим только видимые карточки
+  // Intersection Observer - грузим видимые карточки с меньшим rootMargin для экономии
   useEffect(() => {
+    if (priority) return; // Priority карточки не нуждаются в observer
+    
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -114,7 +128,7 @@ export default function CarCard({ car, onClick }: CarCardProps) {
           observer.disconnect();
         }
       },
-      { rootMargin: '100px', threshold: 0.1 }
+      { rootMargin: '50px', threshold: 0.1 } // Уменьшили с 100px до 50px
     );
 
     if (cardRef.current) {
@@ -122,7 +136,7 @@ export default function CarCard({ car, onClick }: CarCardProps) {
     }
 
     return () => observer.disconnect();
-  }, []);
+  }, [priority]);
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -225,6 +239,7 @@ export default function CarCard({ car, onClick }: CarCardProps) {
                     <BlurUpImage
                       src={photo}
                       alt={`${car.brand} ${car.model} - фото ${index + 1}`}
+                      priority={priority && index === 0} // Priority только для первого фото в priority карточках
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-gray-800 via-gray-900 to-black">
