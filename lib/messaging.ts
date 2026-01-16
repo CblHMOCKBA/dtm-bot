@@ -71,43 +71,43 @@ export function openTelegramChat(username: string): boolean {
 
 /**
  * Позвонить по номеру телефона
- * Использует метод, который работает в Telegram Mini App
+ * ИСПРАВЛЕНО: Использует более надежный метод для Telegram Mini App
  */
 export function makePhoneCall(phoneNumber: string): boolean {
+  // Очищаем номер от всех символов кроме цифр и +
   const phoneClean = phoneNumber.replace(/[\s()-]/g, '');
   const telLink = `tel:${phoneClean}`;
   const tg = getTelegramWebApp();
   
   console.log('[Phone] Звонок на номер:', phoneClean);
   
-  // Способ 1: Telegram WebApp API для открытия внешних ссылок
-  if (tg?.openLink) {
-    try {
-      console.log('[Phone] Используем openLink');
-      tg.openLink(telLink);
-      
-      if (tg.HapticFeedback) {
-        tg.HapticFeedback.impactOccurred('light');
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('[Phone] openLink failed:', error);
-    }
+  // Haptic feedback при нажатии
+  if (tg?.HapticFeedback) {
+    tg.HapticFeedback.impactOccurred('medium');
   }
   
-  // Способ 2: window.open для non-Telegram окружения
+  // ИСПРАВЛЕНИЕ: Используем location.href напрямую
+  // Это самый надежный способ для звонков в Telegram Mini App
   try {
-    console.log('[Phone] Fallback: window.open');
-    const callWindow = window.open(telLink, '_blank');
-    if (callWindow || navigator.userAgent.includes('Mobile')) {
-      // На мобильных устройствах window.open может вернуть null, но всё равно сработать
-      return true;
-    }
+    console.log('[Phone] Используем location.href');
+    window.location.href = telLink;
+    return true;
   } catch (error) {
-    console.error('[Phone] window.open failed:', error);
+    console.error('[Phone] location.href failed:', error);
+    
+    // Fallback: пробуем window.open
+    try {
+      console.log('[Phone] Fallback: window.open');
+      window.open(telLink, '_self');
+      return true;
+    } catch (error2) {
+      console.error('[Phone] window.open failed:', error2);
+      
+      // Последний fallback: показываем алерт с номером
+      if (tg?.showAlert) {
+        tg.showAlert(`Позвоните на номер: ${phoneNumber}`);
+      }
+      return false;
+    }
   }
-  
-  console.error('[Phone] Не удалось совершить звонок');
-  return false;
 }
