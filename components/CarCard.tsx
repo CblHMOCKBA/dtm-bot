@@ -12,51 +12,17 @@ interface CarCardProps {
   priority?: boolean; // Для первых карточек above the fold
 }
 
-// Создаём оптимизированный URL для Supabase Storage
-const getOptimizedImageUrl = (url: string, options: { width?: number; quality?: number; format?: 'webp' | 'origin' } = {}): string => {
-  const { width = 400, quality = 80, format = 'webp' } = options;
-  
-  // Supabase Storage transformation
-  if (url.includes('supabase.co/storage/v1/object/public/')) {
-    const baseUrl = url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/');
-    return `${baseUrl}?width=${width}&quality=${quality}${format === 'webp' ? '&format=webp' : ''}`;
-  }
-  return url;
-};
-
-// Thumbnail для blur placeholder (маленький размер, низкое качество)
-const getThumbnailUrl = (url: string): string => {
-  return getOptimizedImageUrl(url, { width: 100, quality: 30, format: 'webp' });
-};
-
-// Основное фото для каталога (оптимизированный размер)
-const getCatalogImageUrl = (url: string): string => {
-  return getOptimizedImageUrl(url, { width: 400, quality: 80, format: 'webp' });
-};
-
-// Компонент для фото с blur-up эффектом и прогрессивной загрузкой
+// Компонент для фото с blur-up эффектом (упрощенная версия)
 function BlurUpImage({ src, alt, className, priority = false }: { src: string; alt: string; className?: string; priority?: boolean }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [showPlaceholder, setShowPlaceholder] = useState(true);
-  const thumbnailUrl = getThumbnailUrl(src);
-  const optimizedUrl = getCatalogImageUrl(src);
   
   return (
     <div className="relative w-full h-full overflow-hidden">
-      {/* Placeholder - размытый thumbnail */}
+      {/* Placeholder - градиент с shimmer */}
       {showPlaceholder && (
         <div className="absolute inset-0 z-0">
-          {/* Загружаем маленький thumbnail для blur эффекта */}
-          <img
-            src={thumbnailUrl}
-            alt=""
-            className="w-full h-full object-cover blur-xl scale-110"
-            onError={(e) => {
-              // Если thumbnail не загрузился - показываем градиент
-              (e.target as HTMLImageElement).style.display = 'none';
-            }}
-          />
-          {/* Fallback градиент */}
+          {/* Градиент */}
           <div 
             className="absolute inset-0 bg-gradient-to-br from-gray-800 via-gray-900 to-black animate-pulse"
             style={{ 
@@ -74,9 +40,9 @@ function BlurUpImage({ src, alt, className, priority = false }: { src: string; a
         </div>
       )}
       
-      {/* Основное оптимизированное фото */}
+      {/* Основное фото */}
       <img
-        src={optimizedUrl}
+        src={src}
         alt={alt}
         className={`w-full h-full object-cover transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'} ${className || ''}`}
         loading={priority ? 'eager' : 'lazy'}
@@ -84,8 +50,12 @@ function BlurUpImage({ src, alt, className, priority = false }: { src: string; a
         draggable={false}
         onLoad={() => {
           setIsLoaded(true);
-          // Убираем placeholder с небольшой задержкой для плавности
           setTimeout(() => setShowPlaceholder(false), 300);
+        }}
+        onError={(e) => {
+          // Fallback при ошибке загрузки
+          console.error('Image load error:', src);
+          setShowPlaceholder(true);
         }}
       />
     </div>
