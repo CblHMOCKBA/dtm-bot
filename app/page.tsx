@@ -159,9 +159,9 @@ export default function Home() {
       filtered = filtered.filter(car => car.status === statusFilter);
     }
 
-    // Фильтр по марке
+    // Фильтр по марке с нормализацией
     if (selectedBrand !== 'all') {
-      filtered = filtered.filter(car => car.brand === selectedBrand);
+      filtered = filtered.filter(car => normalizeBrand(car.brand) === selectedBrand);
     }
 
     if (searchQuery.trim()) {
@@ -232,14 +232,49 @@ export default function Home() {
     }
   };
 
-  // Подсчет марок и их количества
+  // Нормализация марок (убираем дубликаты и берем только первое слово)
+  const normalizeBrand = (brand: string): string => {
+    // Убираем лишние пробелы
+    const cleaned = brand.trim();
+    // Берем только первое слово (марку)
+    const firstWord = cleaned.split(/\s+/)[0];
+    
+    // Словарь правильных названий марок (для единообразия)
+    const brandNames: { [key: string]: string } = {
+      'bmw': 'BMW',
+      'mercedes': 'Mercedes',
+      'audi': 'Audi', 
+      'porsche': 'Porsche',
+      'volkswagen': 'Volkswagen',
+      'toyota': 'Toyota',
+      'lexus': 'Lexus',
+      'tesla': 'Tesla',
+      'ford': 'Ford',
+      'chevrolet': 'Chevrolet',
+      'kia': 'Kia',
+      'hyundai': 'Hyundai',
+      'mazda': 'Mazda',
+      'nissan': 'Nissan',
+      'honda': 'Honda',
+      'volvo': 'Volvo',
+      'jaguar': 'Jaguar',
+      'land': 'Land Rover',
+      'range': 'Range Rover',
+    };
+    
+    const lowerFirst = firstWord.toLowerCase();
+    return brandNames[lowerFirst] || firstWord;
+  };
+
+  // Подсчет марок и их количества с нормализацией
   const getBrandCounts = () => {
     const brandMap = new Map<string, number>();
     
     cars.forEach(car => {
       if (car.status !== 'sold') {
-        const count = brandMap.get(car.brand) || 0;
-        brandMap.set(car.brand, count + 1);
+        const normalizedBrand = normalizeBrand(car.brand);
+        const count = brandMap.get(normalizedBrand) || 0;
+        brandMap.set(normalizedBrand, count + 1);
       }
     });
 
