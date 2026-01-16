@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Car, Phone, Heart, BarChart3, Settings, Grid2X2, LayoutGrid, FileText, MessageCircle, ArrowUpDown, ArrowUp, ArrowDown, Calendar, DollarSign, Send, X, Search, Moon, Sun } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { isAdmin, getTelegramWebApp } from '@/lib/telegram';
-import { sendTelegramMessage, openTelegramChat, makePhoneCall } from '@/lib/messaging';
+import { sendTelegramMessage, openTelegramChat } from '@/lib/messaging';
 import { supabase } from '@/lib/supabase';
 import { Car as CarType, CarStatus } from '@/types';
 import CarCard from '@/components/CarCard';
@@ -186,9 +186,13 @@ export default function Home() {
     setFilteredCars(filtered);
   };
 
-  // ИСПРАВЛЕНО: Используем надёжные функции из messaging.ts
+  // ИСПРАВЛЕНО: Прямой вызов как в контактах
   const handleCall = () => {
-    makePhoneCall(phoneNumber);
+    const tg = getTelegramWebApp();
+    if (tg?.HapticFeedback) {
+      tg.HapticFeedback.impactOccurred('medium');
+    }
+    window.open(`tel:${phoneNumber.replace(/\s+/g, '').replace(/[()]/g, '').replace(/-/g, '')}`, '_blank');
   };
 
   const handleTelegram = () => {
