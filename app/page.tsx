@@ -152,6 +152,41 @@ export default function Home() {
     }
   };
 
+  // Нормализация марок (убираем дубликаты и берем только первое слово)
+  // ВАЖНО: Эта функция должна быть ПЕРЕД applyFiltersAndSort!
+  const normalizeBrand = (brand: string): string => {
+    // Убираем лишние пробелы
+    const cleaned = brand.trim();
+    // Берем только первое слово (марку)
+    const firstWord = cleaned.split(/\s+/)[0];
+    
+    // Словарь правильных названий марок (для единообразия)
+    const brandNames: { [key: string]: string } = {
+      'bmw': 'BMW',
+      'mercedes': 'Mercedes',
+      'audi': 'Audi', 
+      'porsche': 'Porsche',
+      'volkswagen': 'Volkswagen',
+      'toyota': 'Toyota',
+      'lexus': 'Lexus',
+      'tesla': 'Tesla',
+      'ford': 'Ford',
+      'chevrolet': 'Chevrolet',
+      'kia': 'Kia',
+      'hyundai': 'Hyundai',
+      'mazda': 'Mazda',
+      'nissan': 'Nissan',
+      'honda': 'Honda',
+      'volvo': 'Volvo',
+      'jaguar': 'Jaguar',
+      'land': 'Land Rover',
+      'range': 'Range Rover',
+    };
+    
+    const lowerFirst = firstWord.toLowerCase();
+    return brandNames[lowerFirst] || firstWord;
+  };
+
   const applyFiltersAndSort = () => {
     let filtered = [...cars];
 
@@ -230,40 +265,6 @@ export default function Home() {
     if (tg?.HapticFeedback) {
       tg.HapticFeedback.impactOccurred('medium');
     }
-  };
-
-  // Нормализация марок (убираем дубликаты и берем только первое слово)
-  const normalizeBrand = (brand: string): string => {
-    // Убираем лишние пробелы
-    const cleaned = brand.trim();
-    // Берем только первое слово (марку)
-    const firstWord = cleaned.split(/\s+/)[0];
-    
-    // Словарь правильных названий марок (для единообразия)
-    const brandNames: { [key: string]: string } = {
-      'bmw': 'BMW',
-      'mercedes': 'Mercedes',
-      'audi': 'Audi', 
-      'porsche': 'Porsche',
-      'volkswagen': 'Volkswagen',
-      'toyota': 'Toyota',
-      'lexus': 'Lexus',
-      'tesla': 'Tesla',
-      'ford': 'Ford',
-      'chevrolet': 'Chevrolet',
-      'kia': 'Kia',
-      'hyundai': 'Hyundai',
-      'mazda': 'Mazda',
-      'nissan': 'Nissan',
-      'honda': 'Honda',
-      'volvo': 'Volvo',
-      'jaguar': 'Jaguar',
-      'land': 'Land Rover',
-      'range': 'Range Rover',
-    };
-    
-    const lowerFirst = firstWord.toLowerCase();
-    return brandNames[lowerFirst] || firstWord;
   };
 
   // Подсчет марок и их количества с нормализацией
