@@ -25,18 +25,23 @@ function getTimestamp(): string {
 }
 
 /**
- * Санитизация сообщения для URL
- * Убирает эмодзи и проблемные символы (ES5 совместимо)
+ * Проверка мобильной платформы
+ */
+function isMobile(): boolean {
+  const tg = getTelegramWebApp();
+  if (!tg?.platform) return false;
+  const platform = tg.platform.toLowerCase();
+  return platform === 'android' || platform === 'ios';
+}
+
+/**
+ * Санитизация сообщения для URL (ES5 совместимо)
  */
 function sanitizeMessage(msg: string): string {
   return msg
-    // Убираем эмодзи через суррогатные пары (ES5 совместимо)
     .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '')
-    // Убираем другие символы эмодзи
     .replace(/[\u2600-\u27BF]/g, '')
-    // Убираем специальные символы Unicode
     .replace(/[\u200B-\u200D\uFEFF]/g, '')
-    // Заменяем множественные переносы
     .replace(/\n{3,}/g, '\n\n')
     .replace(/  +/g, ' ')
     .trim();
@@ -55,6 +60,7 @@ const MAX_URL_LENGTH = 1500;
 
 /**
  * Отправка сообщения в Telegram
+ * ИСПРАВЛЕНО: Добавлена задержка для мобильных
  */
 export function sendTelegramMessage(username: string, message: string): boolean {
   const tg = getTelegramWebApp();
@@ -62,13 +68,11 @@ export function sendTelegramMessage(username: string, message: string): boolean 
   // Защита от повторных нажатий
   const now = Date.now();
   if (now - lastSendTime < DEBOUNCE_MS) {
-    console.log('[TG] Blocked: too fast');
     return false;
   }
   lastSendTime = now;
   
   if (!username || !message) {
-    console.error('[TG] Error: empty username or message');
     return false;
   }
   
@@ -91,31 +95,34 @@ export function sendTelegramMessage(username: string, message: string): boolean 
     tgLink = `https://t.me/${username}?text=${encodeURIComponent(shortFormatted)}`;
   }
   
-  console.log('[TG] Sending:', { requestId, urlLen: tgLink.length, platform: tg?.platform });
+  // Haptic feedback сразу
+  if (tg?.HapticFeedback) {
+    tg.HapticFeedback.notificationOccurred('success');
+  }
   
-  // Отправка
+  // На мобильных используем задержку и location.href
+  if (isMobile()) {
+    setTimeout(() => {
+      window.location.href = tgLink;
+    }, 100);
+    return true;
+  }
+  
+  // На десктопе используем openTelegramLink
   if (tg?.openTelegramLink) {
     try {
       tg.openTelegramLink(tgLink);
-      
-      if (tg.HapticFeedback) {
-        tg.HapticFeedback.notificationOccurred('success');
-      }
-      
       return true;
     } catch (error) {
-      console.error('[TG] openTelegramLink failed:', error);
+      // Fallback
+      window.location.href = tgLink;
+      return true;
     }
   }
   
-  // Fallback
-  try {
-    window.open(tgLink, '_blank');
-    return true;
-  } catch (e) {
-    console.error('[TG] All methods failed');
-    return false;
-  }
+  // Fallback для всех остальных случаев
+  window.location.href = tgLink;
+  return true;
 }
 
 /**
@@ -128,26 +135,29 @@ export function openTelegramChat(username: string): boolean {
   
   const tgLink = `https://t.me/${username}`;
   
+  if (tg?.HapticFeedback) {
+    tg.HapticFeedback.impactOccurred('light');
+  }
+  
+  if (isMobile()) {
+    setTimeout(() => {
+      window.location.href = tgLink;
+    }, 100);
+    return true;
+  }
+  
   if (tg?.openTelegramLink) {
     try {
       tg.openTelegramLink(tgLink);
-      
-      if (tg.HapticFeedback) {
-        tg.HapticFeedback.impactOccurred('light');
-      }
-      
       return true;
     } catch (error) {
-      // Fallback
+      window.location.href = tgLink;
+      return true;
     }
   }
   
-  try {
-    window.open(tgLink, '_blank');
-    return true;
-  } catch (e) {
-    return false;
-  }
+  window.location.href = tgLink;
+  return true;
 }
 
 /**
@@ -162,20 +172,9 @@ export function makePhoneCall(phoneNumber: string): boolean {
     tg.HapticFeedback.impactOccurred('medium');
   }
   
-  try {
+  setTimeout(() => {
     window.location.href = telLink;
-    return true;
-  } catch (error) {
-    try {
-      window.open(telLink, '_self');
-      return true;
-    } catch (e) {
-      if (tg?.showAlert) {
-        tg.showAlert(`Позвоните: ${phoneNumber}`);
-      } else {
-        alert(`Позвоните: ${phoneNumber}`);
-      }
-      return false;
-    }
-  }
+  }, 50);
+  
+  return true;
 }

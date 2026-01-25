@@ -33,20 +33,6 @@ export default function RootLayout({
           src="https://telegram.org/js/telegram-web-app.js" 
           strategy="beforeInteractive"
         />
-        
-        {/* ДЕБАГ: Eruda консоль для мобильных - УДАЛИТЬ ПОСЛЕ ОТЛАДКИ */}
-        <Script 
-          src="https://cdn.jsdelivr.net/npm/eruda"
-          strategy="afterInteractive"
-        />
-        <Script id="eruda-init" strategy="afterInteractive">
-          {`
-            if (typeof eruda !== 'undefined') {
-              eruda.init();
-              console.log('[DEBUG] Eruda initialized');
-            }
-          `}
-        </Script>
       </head>
       <body suppressHydrationWarning>
         <ErrorBoundary>
