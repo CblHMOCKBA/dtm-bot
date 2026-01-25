@@ -35,13 +35,20 @@ function isMobile(): boolean {
 }
 
 /**
- * Санитизация сообщения для URL (ES5 совместимо)
+ * Санитизация сообщения для URL
+ * ИСПРАВЛЕНО: Убираем неразрывные пробелы которые ломают мобильный Telegram
  */
 function sanitizeMessage(msg: string): string {
   return msg
+    // КРИТИЧНО: Заменяем неразрывные пробелы на обычные
+    .replace(/\u00A0/g, ' ')
+    // Убираем эмодзи через суррогатные пары
     .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '')
+    // Убираем другие символы эмодзи
     .replace(/[\u2600-\u27BF]/g, '')
+    // Убираем zero-width символы
     .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    // Заменяем множественные переносы
     .replace(/\n{3,}/g, '\n\n')
     .replace(/  +/g, ' ')
     .trim();
@@ -60,7 +67,6 @@ const MAX_URL_LENGTH = 1500;
 
 /**
  * Отправка сообщения в Telegram
- * ИСПРАВЛЕНО: Добавлена задержка для мобильных
  */
 export function sendTelegramMessage(username: string, message: string): boolean {
   const tg = getTelegramWebApp();
@@ -114,13 +120,12 @@ export function sendTelegramMessage(username: string, message: string): boolean 
       tg.openTelegramLink(tgLink);
       return true;
     } catch (error) {
-      // Fallback
       window.location.href = tgLink;
       return true;
     }
   }
   
-  // Fallback для всех остальных случаев
+  // Fallback
   window.location.href = tgLink;
   return true;
 }
