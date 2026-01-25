@@ -1,0 +1,1696 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --tg-theme-bg-color: #04030E;
+  --tg-theme-text-color: #FFFFFF;
+  --tg-theme-hint-color: #9CA3AF;
+  --tg-theme-link-color: #CC003A;
+  --tg-theme-button-color: #CC003A;
+  --tg-theme-button-text-color: #FFFFFF;
+  --tg-theme-secondary-bg-color: #0F0E18;
+  --tg-theme-border-color: #1A1925;
+  --tg-theme-accent: #CC003A;
+  --tg-theme-accent-hover: #E60044;
+  --tg-theme-accent-dark: #990029;
+  --tg-theme-white: #DDEAEB;
+  /* Telegram viewport */
+  --tg-viewport-height: 100vh;
+  --tg-viewport-stable-height: 100vh;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ========================================
+   TELEGRAM MINI APP - FULLSCREEN & VIEWPORT
+======================================== */
+
+/* ========================================
+   TELEGRAM MINI APP - БЛОКИРОВКА СВАЙПОВ
+======================================== */
+
+html {
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
+  /* Используем viewport height от Telegram */
+  min-height: var(--tg-viewport-height, 100vh);
+  min-height: 100dvh;
+}
+
+body {
+  /* Предотвращает "резиновый" скролл и закрытие Mini App */
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
+  touch-action: pan-y;
+  -webkit-touch-callout: none;
+  /* Safe area для устройств с вырезом */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  min-height: var(--tg-viewport-height, 100vh);
+  min-height: 100dvh;
+}
+
+/* Блокируем перетаскивание изображений */
+img {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+  -webkit-touch-callout: none;
+}
+
+/* Галереи фото - разрешаем горизонтальный свайп */
+.photo-gallery {
+  touch-action: pan-x pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+.photo-gallery-item {
+  touch-action: pan-x pan-y;
+}
+
+.photo-gallery-item img {
+  touch-action: pan-x pan-y;
+  pointer-events: auto;
+}
+
+/* ========================================
+   DTM BACKGROUND - ФИКСИРОВАННЫЙ ФОН
+======================================== */
+
+body {
+  color: var(--tg-theme-text-color);
+  font-family: 'Rajdhani', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  background-color: #04030E;
+}
+
+/* Фоновое изображение - GPU ускорение для предотвращения мерцания */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/dtm-background.jpg');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  z-index: -2;
+  pointer-events: none;
+  /* GPU ускорение - предотвращает мерцание */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Затемнение фона - видно но не слепит */
+  background: 
+    radial-gradient(ellipse at top right, rgba(204, 0, 58, 0.08) 0%, transparent 50%),
+    linear-gradient(180deg, 
+      rgba(4, 3, 14, 0.4) 0%,
+      rgba(4, 3, 14, 0.5) 50%,
+      rgba(4, 3, 14, 0.6) 100%
+    );
+  background-attachment: fixed;
+  pointer-events: none;
+  z-index: 0;
+  /* GPU ускорение */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Racing stripes */
+.racing-stripes {
+  position: relative;
+}
+
+.racing-stripes::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 50px,
+      rgba(204, 0, 58, 0.02) 50px,
+      rgba(204, 0, 58, 0.02) 52px
+    );
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ========================================
+   TYPOGRAPHY
+======================================== */
+
+.brand-name {
+  font-family: 'Orbitron', monospace;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* ========================================
+   TELEGRAM WEBAPP COMPONENTS
+======================================== */
+
+.tg-bg {
+  background-color: var(--tg-theme-bg-color);
+}
+
+.tg-text {
+  color: var(--tg-theme-text-color);
+}
+
+.tg-hint {
+  color: var(--tg-theme-hint-color);
+}
+
+.tg-link {
+  color: var(--tg-theme-link-color);
+}
+
+.tg-accent {
+  color: var(--tg-theme-accent);
+}
+
+.tg-button {
+  background: linear-gradient(135deg, var(--tg-theme-accent) 0%, var(--tg-theme-accent-dark) 100%);
+  color: var(--tg-theme-button-text-color);
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 700;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 4px 12px rgba(204, 0, 58, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.tg-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 6px 20px rgba(204, 0, 58, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.tg-button:active {
+  transform: translateY(0);
+}
+
+.tg-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.tg-button:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.tg-card {
+  background: rgba(10, 10, 20, 0.3);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.tg-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(204, 0, 58, 0.3);
+  box-shadow: 
+    0 8px 25px rgba(204, 0, 58, 0.1),
+    0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.tg-secondary-bg {
+  background-color: var(--tg-theme-secondary-bg-color);
+}
+
+.tg-input {
+  background: rgba(15, 14, 24, 0.8);
+  border: 2px solid rgba(204, 0, 58, 0.2);
+  color: var(--tg-theme-text-color);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 16px;
+  transition: all 0.3s;
+  outline: none;
+}
+
+.tg-input:focus {
+  border-color: var(--tg-theme-accent);
+  background: rgba(15, 14, 24, 0.95);
+  box-shadow: 0 0 0 3px rgba(204, 0, 58, 0.2);
+}
+
+.tg-input::placeholder {
+  color: var(--tg-theme-hint-color);
+  opacity: 0.6;
+}
+
+/* ========================================
+   PREMIUM BUTTONS
+======================================== */
+
+.premium-back-button {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(204, 0, 58, 0.1);
+  border: 1px solid rgba(204, 0, 58, 0.3);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.premium-back-button:hover {
+  background: rgba(204, 0, 58, 0.2);
+  border-color: rgba(204, 0, 58, 0.5);
+  transform: translateX(-2px);
+  box-shadow: 0 4px 12px rgba(204, 0, 58, 0.3);
+}
+
+.premium-back-button:active {
+  transform: translateX(-4px) scale(0.95);
+}
+
+/* ========================================
+   PRICE DISPLAY
+======================================== */
+
+.price-display {
+  font-family: 'Orbitron', monospace;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #CC003A 0%, #E60044 50%, #CC003A 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 3s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% center;
+  }
+  50% {
+    background-position: 100% center;
+  }
+}
+
+/* ========================================
+   CAR IMAGE EFFECTS
+======================================== */
+
+.car-image-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.car-image-wrapper::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -150%;
+  width: 100%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transform: skewX(-25deg);
+  transition: left 0.7s;
+}
+
+.tg-card:hover .car-image-wrapper::after {
+  left: 150%;
+}
+
+/* ========================================
+   PREMIUM ANIMATIONS & EFFECTS
+======================================== */
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-scale {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(204, 0, 58, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(204, 0, 58, 0.6);
+  }
+}
+
+/* Элегантная анимация для новых авто */
+@keyframes shimmer {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scaleX(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+/* Shimmer для загрузки фото */
+@keyframes shimmer-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+.animate-pulse-scale {
+  animation: pulse-scale 2s ease-in-out infinite;
+}
+
+/* ========================================
+   PREMIUM ICON BUTTON
+======================================== */
+
+.premium-icon-button {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.premium-icon-button:hover {
+  background: rgba(204, 0, 58, 0.2);
+  transform: scale(1.1);
+}
+
+.premium-icon-button:active {
+  transform: scale(0.95);
+}
+
+.premium-icon-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(204, 0, 58, 0.2), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.premium-icon-button:hover::before {
+  opacity: 1;
+}
+
+/* ========================================
+   PREMIUM FILTER BUTTON
+======================================== */
+
+.premium-filter-button {
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: rgba(15, 14, 24, 0.8);
+  color: #9CA3AF;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.premium-filter-button:hover {
+  background: rgba(15, 14, 24, 0.95);
+  transform: scale(1.02);
+}
+
+.premium-filter-button:active {
+  transform: scale(0.95);
+}
+
+.premium-filter-button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.premium-filter-button:hover::after {
+  left: 100%;
+}
+
+/* ========================================
+   PREMIUM ACTIVE FILTER
+======================================== */
+
+.premium-active-filter {
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: rgba(204, 0, 58, 0.2);
+  color: #CC003A;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+  position: relative;
+  cursor: pointer;
+}
+
+.premium-active-filter:hover {
+  transform: scale(1.05);
+}
+
+.premium-active-filter:active {
+  transform: scale(0.95);
+}
+
+.premium-active-filter::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.premium-active-filter:hover::after {
+  left: 100%;
+}
+
+/* ========================================
+   PREMIUM NAV BUTTON
+======================================== */
+
+.premium-nav-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  transition: all 0.3s;
+  color: #9CA3AF;
+  position: relative;
+  cursor: pointer;
+}
+
+.premium-nav-button:hover {
+  background: rgba(15, 14, 24, 0.5);
+  transform: scale(1.05);
+}
+
+.premium-nav-button:active {
+  transform: scale(0.95);
+}
+
+.premium-nav-button.active {
+  color: #CC003A;
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.premium-nav-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(204, 0, 58, 0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.premium-nav-button:hover::before {
+  opacity: 1;
+}
+
+/* ========================================
+   UTILITIES
+======================================== */
+
+.text-gradient-dtm {
+  background: linear-gradient(135deg, #CC003A 0%, #E60044 50%, #CC003A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ========================================
+   TOUCH OPTIMIZATIONS
+======================================== */
+
+@media (hover: none) {
+  .tg-button:hover {
+    transform: none;
+  }
+  .tg-card:hover {
+    transform: none;
+  }
+}
+
+/* ========================================
+   ACCESSIBILITY
+======================================== */
+
+*:focus-visible {
+  outline: 2px solid var(--tg-theme-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ========================================
+   PREMIUM UI COMPONENTS
+======================================== */
+
+/* Premium Icon Button Compact */
+.premium-icon-button-compact {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 2px solid rgba(204, 0, 58, 0.3);
+  background: rgba(204, 0, 58, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.premium-icon-button-compact:hover {
+  border-color: rgba(204, 0, 58, 0.6);
+  background: rgba(204, 0, 58, 0.15);
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(204, 0, 58, 0.4);
+}
+
+.premium-icon-button-compact:active {
+  transform: scale(0.95);
+}
+
+/* Premium Status Tab */
+.premium-status-tab {
+  position: relative;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  cursor: pointer;
+  background: rgba(15, 14, 24, 0.6);
+  color: #9CA3AF;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.premium-status-tab:hover {
+  background: rgba(15, 14, 24, 0.8);
+  transform: scale(1.02);
+  border-color: rgba(204, 0, 58, 0.3);
+}
+
+.premium-status-tab.active {
+  background: linear-gradient(135deg, rgba(204, 0, 58, 0.9), rgba(230, 0, 68, 0.9));
+  color: white;
+  border-color: rgba(204, 0, 58, 0.6);
+  box-shadow: 
+    0 4px 20px rgba(204, 0, 58, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* Premium Search Input */
+.premium-search-input {
+  flex: 1;
+  background: rgba(15, 14, 24, 0.8);
+  border: 2px solid rgba(204, 0, 58, 0.3);
+  color: white;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+}
+
+.premium-search-input:focus {
+  border-color: rgba(204, 0, 58, 0.8);
+  background: rgba(15, 14, 24, 0.95);
+  box-shadow: 
+    0 0 0 4px rgba(204, 0, 58, 0.2),
+    0 4px 20px rgba(204, 0, 58, 0.3);
+  transform: scale(1.01);
+}
+
+.premium-search-input::placeholder {
+  color: #9CA3AF;
+  opacity: 0.6;
+}
+
+/* Premium Square Button */
+.premium-square-button {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 2px solid rgba(204, 0, 58, 0.4);
+  background: rgba(15, 14, 24, 0.8);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.premium-square-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(204, 0, 58, 0.2), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.premium-square-button:hover {
+  border-color: rgba(204, 0, 58, 0.8);
+  background: rgba(204, 0, 58, 0.15);
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(204, 0, 58, 0.5);
+}
+
+.premium-square-button:hover::before {
+  opacity: 1;
+}
+
+.premium-square-button:active {
+  transform: scale(0.95);
+}
+
+/* Premium Active Badge */
+.premium-active-badge {
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(204, 0, 58, 0.15);
+  border: 2px solid rgba(204, 0, 58, 0.4);
+  color: #E60044;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+  cursor: pointer;
+  position: relative;
+}
+
+.premium-active-badge:hover {
+  background: rgba(204, 0, 58, 0.25);
+  border-color: rgba(204, 0, 58, 0.6);
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(204, 0, 58, 0.4);
+}
+
+/* Premium Select */
+.premium-select {
+  width: 100%;
+  background: rgba(15, 14, 24, 0.8);
+  border: 2px solid rgba(204, 0, 58, 0.3);
+  color: white;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 16px;
+  transition: all 0.3s;
+  outline: none;
+  cursor: pointer;
+}
+
+.premium-select:focus {
+  border-color: rgba(204, 0, 58, 0.8);
+  background: rgba(15, 14, 24, 0.95);
+  box-shadow: 0 0 0 4px rgba(204, 0, 58, 0.2);
+  transform: scale(1.01);
+}
+
+.premium-select option {
+  background: #0F0E18;
+  color: white;
+}
+
+/* Premium Input */
+.premium-input {
+  width: 100%;
+  background: rgba(15, 14, 24, 0.8);
+  border: 2px solid rgba(204, 0, 58, 0.3);
+  color: white;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 16px;
+  transition: all 0.3s;
+  outline: none;
+}
+
+.premium-input:focus {
+  border-color: rgba(204, 0, 58, 0.8);
+  background: rgba(15, 14, 24, 0.95);
+  box-shadow: 0 0 0 4px rgba(204, 0, 58, 0.2);
+  transform: scale(1.01);
+}
+
+.premium-input::placeholder {
+  color: #9CA3AF;
+  opacity: 0.6;
+}
+
+/* Premium Filter Buttons */
+.premium-filter-reset-button {
+  flex: 1;
+  padding: 14px 20px;
+  border-radius: 12px;
+  border: 2px solid rgba(204, 0, 58, 0.4);
+  background: transparent;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.premium-filter-reset-button:hover {
+  border-color: rgba(204, 0, 58, 0.8);
+  background: rgba(204, 0, 58, 0.1);
+  transform: scale(1.02);
+}
+
+.premium-filter-reset-button:active {
+  transform: scale(0.98);
+}
+
+.premium-filter-apply-button {
+  flex: 1;
+  padding: 14px 20px;
+  border-radius: 12px;
+  border: 2px solid rgba(204, 0, 58, 0.6);
+  background: linear-gradient(135deg, rgba(204, 0, 58, 0.9), rgba(230, 0, 68, 0.9));
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(204, 0, 58, 0.4);
+}
+
+.premium-filter-apply-button:hover {
+  background: linear-gradient(135deg, rgba(230, 0, 68, 0.9), rgba(204, 0, 58, 0.9));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(204, 0, 58, 0.6);
+}
+
+.premium-filter-apply-button:active {
+  transform: translateY(0);
+}
+
+/* ========================================
+   REFINED UI COMPONENTS (КАК В СТАРОМ ДИЗАЙНЕ)
+======================================== */
+
+/* Fade-in анимация */
+.fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Pulse Button (как раньше) */
+.pulse-button {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(204, 0, 58, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(204, 0, 58, 0.6);
+  }
+}
+
+/* Refined Status Tab (утонченные вкладки) */
+.refined-status-tab {
+  position: relative;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.03);
+  color: #9CA3AF;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.refined-status-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-1px);
+  border-color: rgba(204, 0, 58, 0.2);
+}
+
+.refined-status-tab.active {
+  background: linear-gradient(135deg, rgba(204, 0, 58, 0.8), rgba(230, 0, 68, 0.8));
+  color: white;
+  border-color: rgba(204, 0, 58, 0.4);
+  box-shadow: 
+    0 2px 12px rgba(204, 0, 58, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Refined Search Input (утонченный поиск) */
+.refined-search-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 15px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+}
+
+.refined-search-input:focus {
+  border-color: rgba(204, 0, 58, 0.5);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 
+    0 0 0 3px rgba(204, 0, 58, 0.1),
+    0 2px 8px rgba(204, 0, 58, 0.2);
+  transform: translateY(-1px);
+}
+
+.refined-search-input::placeholder {
+  color: #9CA3AF;
+  opacity: 0.5;
+}
+
+/* Refined Icon Button (утонченные квадратные кнопки) */
+.refined-icon-button {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.refined-icon-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(204, 0, 58, 0.15), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.refined-icon-button:hover {
+  border-color: rgba(204, 0, 58, 0.5);
+  background: rgba(204, 0, 58, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(204, 0, 58, 0.3);
+}
+
+.refined-icon-button:hover::before {
+  opacity: 1;
+}
+
+.refined-icon-button:active {
+  transform: translateY(0) scale(0.95);
+}
+
+/* Refined Active Badge (утонченные badge) */
+.refined-active-badge {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(204, 0, 58, 0.1);
+  border: 1px solid rgba(204, 0, 58, 0.3);
+  color: #E60044;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s;
+  cursor: pointer;
+  position: relative;
+}
+
+.refined-active-badge:hover {
+  background: rgba(204, 0, 58, 0.2);
+  border-color: rgba(204, 0, 58, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(204, 0, 58, 0.3);
+}
+
+/* Refined Select (утонченный select) */
+.refined-select {
+  width: 100%;
+  background: rgba(15, 14, 24, 0.6);
+  border: 1px solid rgba(204, 0, 58, 0.2);
+  color: white;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 15px;
+  transition: all 0.3s;
+  outline: none;
+  cursor: pointer;
+}
+
+.refined-select:focus {
+  border-color: rgba(204, 0, 58, 0.6);
+  background: rgba(15, 14, 24, 0.8);
+  box-shadow: 0 0 0 3px rgba(204, 0, 58, 0.1);
+  transform: translateY(-1px);
+}
+
+.refined-select option {
+  background: #0F0E18;
+  color: white;
+}
+
+/* Refined Input (утонченный input) */
+.refined-input {
+  width: 100%;
+  background: rgba(15, 14, 24, 0.6);
+  border: 1px solid rgba(204, 0, 58, 0.2);
+  color: white;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 15px;
+  transition: all 0.3s;
+  outline: none;
+}
+
+.refined-input:focus {
+  border-color: rgba(204, 0, 58, 0.6);
+  background: rgba(15, 14, 24, 0.8);
+  box-shadow: 0 0 0 3px rgba(204, 0, 58, 0.1);
+  transform: translateY(-1px);
+}
+
+.refined-input::placeholder {
+  color: #9CA3AF;
+  opacity: 0.5;
+}
+
+/* Refined Nav Button (утонченная навигация) */
+.refined-nav-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  transition: all 0.3s;
+  color: #9CA3AF;
+  position: relative;
+  cursor: pointer;
+}
+
+.refined-nav-button:hover {
+  background: rgba(204, 0, 58, 0.1);
+  color: #E60044;
+  transform: translateY(-2px);
+}
+
+.refined-nav-button:active {
+  transform: translateY(0) scale(0.95);
+}
+
+.refined-nav-button.active {
+  color: #CC003A;
+}
+
+.refined-nav-button.active::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  background: rgba(204, 0, 58, 0.1);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* tg-button-secondary (вторичная кнопка) */
+.tg-button-secondary {
+  background: transparent !important;
+  border: 1px solid rgba(204, 0, 58, 0.3);
+  box-shadow: none !important;
+}
+
+.tg-button-secondary:hover {
+  border-color: rgba(204, 0, 58, 0.6);
+  background: rgba(204, 0, 58, 0.1) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(204, 0, 58, 0.3) !important;
+}
+
+/* ========================================
+   SHINE EFFECTS - ЭФФЕКТ ГЛЯНЦА ВЕЗДЕ!
+======================================== */
+
+/* Shine на всех кнопках */
+.tg-button::after,
+.tg-button-secondary::after,
+.refined-icon-button::after,
+.refined-status-tab::after,
+.premium-back-button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.6s;
+  pointer-events: none;
+}
+
+.tg-button:hover::after,
+.tg-button-secondary:hover::after,
+.refined-icon-button:hover::after,
+.refined-status-tab:hover::after,
+.premium-back-button:hover::after {
+  left: 100%;
+}
+
+/* Shine на карточках статистики */
+.tg-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.tg-card::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -150%;
+  width: 100%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transform: skewX(-25deg);
+  transition: left 0.7s;
+  pointer-events: none;
+}
+
+.tg-card:hover::after {
+  left: 150%;
+}
+
+/* Дополнительный shine на nav кнопках */
+.refined-nav-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.refined-nav-button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.refined-nav-button:hover::after {
+  left: 100%;
+}
+
+/* Shine на поиске при фокусе */
+.refined-search-input {
+  position: relative;
+  overflow: hidden;
+}
+
+.refined-search-input::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transition: left 0.6s;
+  pointer-events: none;
+}
+
+.refined-search-input:focus::after {
+  left: 100%;
+}
+
+/* Усиленный shine для активных элементов */
+.refined-status-tab.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left 0.8s;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.refined-status-tab.active:hover::before {
+  left: 100%;
+}
+
+/* Shine на badge */
+.refined-active-badge {
+  position: relative;
+  overflow: hidden;
+}
+
+.refined-active-badge::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.refined-active-badge:hover::after {
+  left: 100%;
+}
+
+/* Shine на select и input при фокусе */
+.refined-select,
+.refined-input {
+  position: relative;
+  overflow: hidden;
+}
+
+.refined-select::after,
+.refined-input::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transition: left 0.6s;
+  pointer-events: none;
+}
+
+.refined-select:focus::after,
+.refined-input:focus::after {
+  left: 100%;
+}
+
+/* ========================================
+   SCROLLBAR HIDE - Скрытие полосы прокрутки
+======================================== */
+
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* ========================================
+   PAGE TRANSITIONS - Перелистывание как книга
+======================================== */
+
+.page-transition-wrapper {
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.page-transition-container {
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Входящая страница СПРАВА (идём вперёд/вглубь) */
+@keyframes page-slide-in-right {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Входящая страница СЛЕВА (идём назад) */
+@keyframes page-slide-in-left {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Уходящая страница ВЛЕВО (идём вперёд) */
+@keyframes page-slide-out-left {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+/* Уходящая страница ВПРАВО (идём назад) */
+@keyframes page-slide-out-right {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Классы анимаций */
+.page-enter-forward {
+  animation: page-slide-in-right 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  will-change: transform, opacity;
+}
+
+.page-enter-back {
+  animation: page-slide-in-left 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  will-change: transform, opacity;
+}
+
+.page-exit-forward {
+  animation: page-slide-out-left 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  will-change: transform, opacity;
+}
+
+.page-exit-back {
+  animation: page-slide-out-right 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  will-change: transform, opacity;
+}
+
+/* ========================================
+   SMOOTH SCROLL GALLERY - Свайп как на auto.ru
+======================================== */
+
+.snap-x {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.snap-center {
+  scroll-snap-align: center;
+}
+
+.snap-mandatory {
+  scroll-snap-type: x mandatory;
+}
+
+/* Плавная прокрутка галереи */
+.gallery-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Контейнер галереи - свободный скролл без snap */
+.photo-gallery {
+  display: flex;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.photo-gallery::-webkit-scrollbar {
+  display: none;
+}
+
+.photo-gallery:active {
+  cursor: grabbing;
+}
+
+.photo-gallery-item {
+  flex-shrink: 0;
+  width: 100%;
+}
+
+/* Улучшенные индикаторы галереи */
+.gallery-indicator {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gallery-indicator.active {
+  transform: scaleX(1.5);
+}
+
+/* Touch feedback для фото */
+.photo-gallery-item img {
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* ========================================
+   MARQUEE - Бегущая строка
+======================================== */
+
+.marquee-container {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.marquee-content {
+  display: inline-flex;
+  animation: marquee 20s linear infinite;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.33%);
+  }
+}
+
+/* ========================================
+   BOTTOM NAVIGATION ANIMATION
+======================================== */
+
+@keyframes nav-slide-up {
+  0% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.bottom-nav-enter {
+  animation: nav-slide-up 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Active indicator animation for nav buttons */
+.refined-nav-button.active::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #CC003A, transparent);
+  border-radius: 2px;
+  animation: nav-indicator-pulse 2s ease-in-out infinite;
+}
+
+@keyframes nav-indicator-pulse {
+  0%, 100% {
+    opacity: 0.6;
+    width: 20px;
+  }
+  50% {
+    opacity: 1;
+    width: 30px;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ========================================
+   ELEGANT DARK MODE - Элегантная тёмная тема
+======================================== */
+
+/* Скрываем фон когда включена тёмная тема */
+body.dark-elegant-mode::after {
+  background-image: none !important;
+  background: linear-gradient(
+    145deg,
+    #0a0a0f 0%,
+    #0d0d14 25%,
+    #0f0f18 50%,
+    #0d0d14 75%,
+    #0a0a0f 100%
+  ) !important;
+}
+
+body.dark-elegant-mode::before {
+  background: 
+    /* Subtle вино-красное свечение сверху */
+    radial-gradient(ellipse at top center, rgba(139, 0, 50, 0.08) 0%, transparent 50%),
+    /* Очень тонкие линии для текстуры */
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 100px,
+      rgba(255, 255, 255, 0.01) 100px,
+      rgba(255, 255, 255, 0.01) 101px
+    ),
+    /* Gradient overlay */
+    linear-gradient(
+      180deg,
+      rgba(10, 10, 15, 0.3) 0%,
+      transparent 30%,
+      transparent 70%,
+      rgba(10, 10, 15, 0.3) 100%
+    ) !important;
+}
+
+/* Карточки в тёмной теме - более глубокий фон */
+body.dark-elegant-mode .bg-white\/5 {
+  background: rgba(15, 15, 22, 0.6) !important;
+  border-color: rgba(139, 0, 50, 0.15) !important;
+}
+
+body.dark-elegant-mode .bg-white\/5:hover {
+  background: rgba(20, 20, 30, 0.7) !important;
+  border-color: rgba(139, 0, 50, 0.3) !important;
+}
+
+/* Нижняя навигация */
+body.dark-elegant-mode .fixed.bottom-0 {
+  background: rgba(8, 8, 12, 0.85) !important;
+  border-color: rgba(139, 0, 50, 0.1) !important;
+}
+
+/* Карточки авто */
+body.dark-elegant-mode .car-card {
+  background: linear-gradient(
+    145deg,
+    rgba(15, 15, 22, 0.8),
+    rgba(20, 20, 30, 0.6)
+  ) !important;
+  border-color: rgba(139, 0, 50, 0.12) !important;
+}
+
+body.dark-elegant-mode .car-card:hover {
+  border-color: rgba(204, 0, 58, 0.3) !important;
+  box-shadow: 0 8px 32px rgba(139, 0, 50, 0.15) !important;
+}
+
+/* Переход между темами */
+body::after,
+body::before {
+  transition: background 0.5s ease, background-image 0.5s ease;
+}
