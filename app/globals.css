@@ -119,9 +119,12 @@ body::after {
   /* GPU ускорение - предотвращает мерцание */
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
-  will-change: transform;
+  will-change: opacity;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  /* ИСПРАВЛЕНО: Плавное переключение темы через opacity */
+  opacity: 1;
+  transition: opacity 0.4s ease-out;
 }
 
 body::before {
@@ -145,9 +148,11 @@ body::before {
   /* GPU ускорение */
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
-  will-change: transform;
+  will-change: opacity, background;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  /* ИСПРАВЛЕНО: Плавный переход */
+  transition: background 0.4s ease-out;
 }
 
 /* Racing stripes */
@@ -1622,17 +1627,9 @@ body::before {
    ELEGANT DARK MODE - Элегантная тёмная тема
 ======================================== */
 
-/* Скрываем фон когда включена тёмная тема */
+/* Скрываем фон когда включена тёмная тема - через opacity */
 body.dark-elegant-mode::after {
-  background-image: none !important;
-  background: linear-gradient(
-    145deg,
-    #0a0a0f 0%,
-    #0d0d14 25%,
-    #0f0f18 50%,
-    #0d0d14 75%,
-    #0a0a0f 100%
-  ) !important;
+  opacity: 0;
 }
 
 body.dark-elegant-mode::before {
@@ -1689,8 +1686,14 @@ body.dark-elegant-mode .car-card:hover {
   box-shadow: 0 8px 32px rgba(139, 0, 50, 0.15) !important;
 }
 
-/* Переход между темами */
-body::after,
-body::before {
-  transition: background 0.5s ease, background-image 0.5s ease;
+/* Фон body в тёмной теме */
+body.dark-elegant-mode {
+  background: linear-gradient(
+    145deg,
+    #0a0a0f 0%,
+    #0d0d14 25%,
+    #0f0f18 50%,
+    #0d0d14 75%,
+    #0a0a0f 100%
+  );
 }
