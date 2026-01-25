@@ -26,8 +26,6 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    // suppressHydrationWarning - Telegram SDK добавляет style к html после загрузки
-    // Это нормально и ожидаемо, поэтому подавляем warning
     <html lang="ru" suppressHydrationWarning>
       <head>
         {/* Telegram Web App SDK */}
@@ -35,8 +33,21 @@ export default function RootLayout({
           src="https://telegram.org/js/telegram-web-app.js" 
           strategy="beforeInteractive"
         />
+        
+        {/* ДЕБАГ: Eruda консоль для мобильных - УДАЛИТЬ ПОСЛЕ ОТЛАДКИ */}
+        <Script 
+          src="https://cdn.jsdelivr.net/npm/eruda"
+          strategy="afterInteractive"
+        />
+        <Script id="eruda-init" strategy="afterInteractive">
+          {`
+            if (typeof eruda !== 'undefined') {
+              eruda.init();
+              console.log('[DEBUG] Eruda initialized');
+            }
+          `}
+        </Script>
       </head>
-      {/* suppressHydrationWarning на body тоже, на всякий случай */}
       <body suppressHydrationWarning>
         <ErrorBoundary>
           <TelegramProvider>
