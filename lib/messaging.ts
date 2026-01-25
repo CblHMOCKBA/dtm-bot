@@ -2,10 +2,9 @@ import { getTelegramWebApp } from './telegram';
 
 /**
  * Генерация короткого уникального ID для заявки
- * Формат: DTM-XXXX (4 символа, легко читается и диктуется)
  */
 function generateRequestId(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Без похожих символов (0,O,1,I)
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let id = '';
   for (let i = 0; i < 4; i++) {
     id += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -14,7 +13,7 @@ function generateRequestId(): string {
 }
 
 /**
- * Получить текущую дату/время в формате для заявки
+ * Получить текущую дату/время
  */
 function getTimestamp(): string {
   const now = new Date();
@@ -26,23 +25,36 @@ function getTimestamp(): string {
 }
 
 /**
- * Защита от повторных вызовов (debounce)
+ * Санитизация сообщения для URL
+ * Убирает эмодзи и проблемные символы
+ */
+function sanitizeMessage(msg: string): string {
+  return msg
+    // Убираем эмодзи (могут ломать URL на мобильных)
+    .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
+    .replace(/[\u{2600}-\u{26FF}]/gu, '')
+    .replace(/[\u{2700}-\u{27BF}]/gu, '')
+    // Убираем специальные символы Unicode
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    // Заменяем множественные пробелы/переносы
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/  +/g, ' ')
+    .trim();
+}
+
+/**
+ * Защита от повторных вызовов
  */
 let lastSendTime = 0;
-const DEBOUNCE_MS = 2000; // 2 секунды
+const DEBOUNCE_MS = 2000;
 
 /**
- * Максимальная длина URL для Telegram
+ * Максимальная длина URL
  */
-const MAX_URL_LENGTH = 2000; // Уменьшили для надёжности на мобильных
+const MAX_URL_LENGTH = 1500; // Ещё меньше для надёжности
 
 /**
- * Отправка сообщения в Telegram с уникальным ID заявки
- * 
- * ИСПРАВЛЕНО для мобильных:
- * - Убраны спецсимволы Unicode (━)
- * - Упрощён формат
- * - Добавлен debounce
+ * Отправка сообщения в Telegram
  */
 export function sendTelegramMessage(username: string, message: string): boolean {
   const tg = getTelegramWebApp();
@@ -60,33 +72,28 @@ export function sendTelegramMessage(username: string, message: string): boolean 
     return false;
   }
   
-  // Генерируем уникальный ID
+  // Генерируем ID и санитизируем сообщение
   const requestId = generateRequestId();
   const timestamp = getTimestamp();
+  const cleanMessage = sanitizeMessage(message);
   
-  // ПРОСТОЙ формат без спецсимволов Unicode
-  // Работает на всех платформах
-  const formattedMessage = `[${requestId}] ${timestamp}
-
-${message}`;
+  // Простой формат
+  const formattedMessage = `[${requestId}] ${timestamp}\n\n${cleanMessage}`;
   
+  // Кодируем для URL
   const encodedMessage = encodeURIComponent(formattedMessage);
   let tgLink = `https://t.me/${username}?text=${encodedMessage}`;
   
-  // Проверка длины URL
+  // Проверка длины
   if (tgLink.length > MAX_URL_LENGTH) {
-    // Обрезаем если слишком длинное
-    const maxMsgLen = 300;
-    const shortMessage = message.substring(0, maxMsgLen) + '...';
-    const shortFormatted = `[${requestId}] ${timestamp}
-
-${shortMessage}`;
+    const shortMessage = cleanMessage.substring(0, 200) + '...';
+    const shortFormatted = `[${requestId}] ${timestamp}\n\n${shortMessage}`;
     tgLink = `https://t.me/${username}?text=${encodeURIComponent(shortFormatted)}`;
   }
   
-  console.log('[TG] Sending:', { requestId, urlLen: tgLink.length });
+  console.log('[TG] Sending:', { requestId, urlLen: tgLink.length, platform: tg?.platform });
   
-  // Попытка отправить через Telegram API
+  // Отправка
   if (tg?.openTelegramLink) {
     try {
       tg.openTelegramLink(tgLink);
@@ -98,19 +105,10 @@ ${shortMessage}`;
       return true;
     } catch (error) {
       console.error('[TG] openTelegramLink failed:', error);
-      
-      // Fallback: window.open
-      try {
-        window.open(tgLink, '_blank');
-        return true;
-      } catch (e) {
-        console.error('[TG] window.open failed:', e);
-        return false;
-      }
     }
   }
   
-  // Без TG API - просто открываем ссылку
+  // Fallback
   try {
     window.open(tgLink, '_blank');
     return true;
@@ -140,12 +138,7 @@ export function openTelegramChat(username: string): boolean {
       
       return true;
     } catch (error) {
-      try {
-        window.open(tgLink, '_blank');
-        return true;
-      } catch (e) {
-        return false;
-      }
+      // Fallback
     }
   }
   
