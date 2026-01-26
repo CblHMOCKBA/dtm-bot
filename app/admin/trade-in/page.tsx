@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { isAdmin, getTelegramWebApp } from '@/lib/telegram';
-import { ArrowRightLeft, Phone, Car, Calendar, Banknote, MessageSquare, Check, Archive, ArrowLeft, RefreshCw, Inbox } from 'lucide-react';
+import { ArrowRightLeft, Phone, Car, Calendar, Banknote, MessageSquare, Check, ArrowLeft, RefreshCw, Inbox, Trash2, RotateCcw } from 'lucide-react';
 import { Car as CarType } from '@/types';
 import Image from 'next/image';
 
@@ -57,7 +57,6 @@ export default function TradeInAdminPage() {
   const loadRequests = async () => {
     setLoading(true);
     try {
-      // Загружаем заявки с информацией о целевом авто
       const { data, error } = await supabase
         .from('trade_in_requests')
         .select(`
@@ -98,7 +97,6 @@ export default function TradeInAdminPage() {
         tg.HapticFeedback.notificationOccurred('success');
       }
       
-      // Убираем из списка с анимацией
       setRequests(prev => prev.filter(r => r.id !== id));
     } catch (error) {
       console.error('Error archiving request:', error);
@@ -136,6 +134,41 @@ export default function TradeInAdminPage() {
     }
   };
 
+  const deleteRequest = async (id: string) => {
+    const tg = getTelegramWebApp();
+    
+    // Подтверждение удаления
+    const confirmed = confirm('Удалить заявку навсегда?');
+    if (!confirmed) return;
+    
+    if (tg?.HapticFeedback) {
+      tg.HapticFeedback.impactOccurred('heavy');
+    }
+    
+    setProcessingId(id);
+    try {
+      const { error } = await supabase
+        .from('trade_in_requests')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      if (tg?.HapticFeedback) {
+        tg.HapticFeedback.notificationOccurred('success');
+      }
+      
+      setRequests(prev => prev.filter(r => r.id !== id));
+    } catch (error) {
+      console.error('Error deleting request:', error);
+      if (tg?.HapticFeedback) {
+        tg.HapticFeedback.notificationOccurred('error');
+      }
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   const handleCall = (phone: string) => {
     const tg = getTelegramWebApp();
     if (tg?.HapticFeedback) {
@@ -154,8 +187,6 @@ export default function TradeInAdminPage() {
       minute: '2-digit'
     });
   };
-
-  const activeCount = requests.length;
 
   return (
     <div className="min-h-screen pb-24">
@@ -214,7 +245,6 @@ export default function TradeInAdminPage() {
       {/* Content */}
       <div className="px-4 py-4 space-y-4">
         {loading ? (
-          // Скелетоны
           [...Array(3)].map((_, i) => (
             <div key={i} className="p-4 rounded-2xl bg-white/5 border border-white/10 animate-pulse">
               <div className="h-5 w-1/3 bg-white/10 rounded mb-3" />
@@ -223,7 +253,6 @@ export default function TradeInAdminPage() {
             </div>
           ))
         ) : requests.length === 0 ? (
-          // Пустое состояние
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-4">
               <Inbox className="w-10 h-10 text-white/30" />
@@ -233,7 +262,6 @@ export default function TradeInAdminPage() {
             </p>
           </div>
         ) : (
-          // Список заявок
           requests.map((request) => (
             <div
               key={request.id}
@@ -350,14 +378,23 @@ export default function TradeInAdminPage() {
                     Отработана
                   </button>
                 ) : (
-                  <button
-                    onClick={() => restoreRequest(request.id)}
-                    disabled={processingId === request.id}
-                    className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/70 font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                    Восстановить
-                  </button>
+                  <>
+                    <button
+                      onClick={() => restoreRequest(request.id)}
+                      disabled={processingId === request.id}
+                      className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/70 font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      Вернуть
+                    </button>
+                    <button
+                      onClick={() => deleteRequest(request.id)}
+                      disabled={processingId === request.id}
+                      className="py-2.5 px-4 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400 font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </>
                 )}
               </div>
             </div>
