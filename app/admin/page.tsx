@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getTelegramWebApp, isAdmin } from '@/lib/telegram';
-import { Plus, CheckCircle, ArrowLeft, BarChart, Send, Type, Trash, UserPlus, Car } from 'lucide-react';
+import { Plus, CheckCircle, ArrowLeft, BarChart, Send, Type, Trash, UserPlus, Car, ArrowRightLeft } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 export default function AdminPage() {
@@ -193,6 +193,24 @@ export default function AdminPage() {
               ДОБАВИТЬ ПРОДАННОЕ
             </button>
           </div>
+          
+          {/* Trade-In заявки - НОВАЯ КНОПКА */}
+          <button
+            onClick={() => router.push('/admin/trade-in')}
+            className="w-full py-4 rounded-xl flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
+            style={{
+              background: 'linear-gradient(135deg, rgba(204, 0, 58, 0.15), rgba(153, 0, 41, 0.15))',
+              border: '1px solid rgba(204, 0, 58, 0.3)',
+            }}
+          >
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#CC003A] to-[#990029] flex items-center justify-center">
+              <ArrowRightLeft className="w-5 h-5 text-white" />
+            </div>
+            <div className="text-left">
+              <div className="font-bold text-white">TRADE-IN ЗАЯВКИ</div>
+              <div className="text-xs text-white/50">Заявки на обмен авто</div>
+            </div>
+          </button>
           
           {/* Посты и Статистика */}
           <div className="grid grid-cols-2 gap-3">

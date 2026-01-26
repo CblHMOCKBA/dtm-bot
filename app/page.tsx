@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { Car, Phone, Heart, BarChart3, Settings, Grid2X2, LayoutGrid, FileText, MessageCircle, ArrowUpDown, ArrowUp, ArrowDown, Calendar, DollarSign, Send, X, Search, Moon, Sun } from 'lucide-react';
+import { Car, Phone, Heart, BarChart3, Settings, Grid2X2, LayoutGrid, FileText, MessageCircle, ArrowUpDown, ArrowUp, ArrowDown, Calendar, DollarSign, Send, X, Search, Moon, Sun, ArrowRightLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { isAdmin, getTelegramWebApp } from '@/lib/telegram';
 import { sendTelegramMessage, openTelegramChat } from '@/lib/messaging';
@@ -11,7 +11,7 @@ import CarCard from '@/components/CarCard';
 import CarCardSkeleton from '@/components/CarCardSkeleton';
 import { useFavorites } from '@/lib/useFavorites';
 import { useNavigation } from '@/components/NavigationProvider';
-import Logo from '@/components/Logo';
+import TradeInModal from '@/components/TradeInModal';
 
 type SortOption = 'price_asc' | 'price_desc' | 'date_asc' | 'date_desc';
 
@@ -37,6 +37,7 @@ export default function Home() {
   const [darkMode, setDarkMode] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState<string>('all');
   const [showAllBrandsModal, setShowAllBrandsModal] = useState(false);
+  const [showTradeIn, setShowTradeIn] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Форма заявки
@@ -400,11 +401,30 @@ export default function Home() {
 
           {/* DTM Логотип по центру - абсолютное позиционирование */}
           <div className="absolute left-1/2 -translate-x-1/2">
-            <Logo height={104} />
+            <img 
+              src="/dtm_logo_white.png" 
+              alt="DTM"
+              className="w-auto"
+              style={{
+                filter: 'drop-shadow(0 0 40px rgba(255, 255, 255, 0.7)) drop-shadow(0 0 30px rgba(255, 255, 255, 0.6))',
+                height: '104px'
+              }}
+            />
           </div>
 
-          {/* Правая часть - кнопка звонка */}
-          <div className="w-[100px] flex justify-end">
+          {/* Правая часть - Trade-In + Позвонить */}
+          <div className="flex items-center gap-2">
+            {/* Кнопка Trade-In */}
+            <button
+              onClick={() => setShowTradeIn(true)}
+              className="h-11 px-3 rounded-xl bg-gradient-to-r from-[#CC003A]/20 to-[#990029]/20 border border-[#CC003A]/30 flex items-center gap-1.5 transition-all duration-300 active:scale-90 hover:scale-105 hover:border-[#CC003A]/50 group"
+              aria-label="Trade-In"
+            >
+              <ArrowRightLeft className="w-4 h-4 text-[#CC003A] group-hover:text-white transition-colors" />
+              <span className="text-xs font-bold text-[#CC003A] group-hover:text-white transition-colors">Trade-In</span>
+            </button>
+            
+            {/* Кнопка Позвонить */}
             <button
               onClick={handleCall}
               className="w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-105 hover:border-[#CC003A]/50 hover:bg-white/10 group"
@@ -1008,6 +1028,13 @@ export default function Home() {
           )}
         </div>
       </div>
+
+      {/* Trade-In Modal */}
+      <TradeInModal
+        isOpen={showTradeIn}
+        onClose={() => setShowTradeIn(false)}
+        cars={cars}
+      />
     </div>
   );
 }
