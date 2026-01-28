@@ -23,7 +23,7 @@ export default function Home() {
   const [cars, setCars] = useState<CarType[]>([]);
   const [filteredCars, setFilteredCars] = useState<CarType[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<'all' | CarStatus>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | CarStatus>('available');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
   const [searchResults, setSearchResults] = useState<CarType[]>([]);
@@ -354,8 +354,8 @@ export default function Home() {
   const statusButtons: { value: 'all' | CarStatus; label: string }[] = [
     { value: 'all', label: 'Все' },
     { value: 'available', label: 'В наличии' },
-    { value: 'order', label: 'Под заказ' },
-    { value: 'inTransit', label: 'В пути' }
+    { value: 'inTransit', label: 'В пути' },
+    { value: 'order', label: 'Под заказ' }
   ];
 
   const totalSold = stats.sold + stats.manualSold;
