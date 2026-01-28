@@ -4,7 +4,7 @@ import { Car } from '@/types';
 import { Heart } from 'lucide-react';
 import { useFavorites } from '@/lib/useFavorites';
 import { getTelegramWebApp } from '@/lib/telegram';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, memo } from 'react';
 import Image from 'next/image';
 
 interface CarCardProps {
@@ -13,15 +13,17 @@ interface CarCardProps {
   priority?: boolean;
 }
 
-export default function CarCard({ car, onClick, priority = false }: CarCardProps) {
+// ИСПРАВЛЕНО: Обёрнуто в memo для предотвращения лишних ре-рендеров
+const CarCard = memo(function CarCard({ car, onClick, priority = false }: CarCardProps) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const [isAnimating, setIsAnimating] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const startX = useRef(0);
   const scrollLeft = useRef(0);
+  
+  // ИСПРАВЛЕНО: Убрали imageLoaded/imageError состояния
+  // Next.js Image сам управляет загрузкой, не нужно сбрасывать состояние
   
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('ru-RU').format(price);
@@ -37,11 +39,8 @@ export default function CarCard({ car, onClick, priority = false }: CarCardProps
   const hasMultiplePhotos = car.photos && car.photos.length > 1;
   const photoCount = car.photos?.length || 0;
 
-  // Сброс состояния при смене машины
-  useEffect(() => {
-    setImageLoaded(false);
-    setImageError(false);
-  }, [car.id]);
+  // УДАЛЕНО: useEffect со сбросом imageLoaded
+  // Это была главная причина мерцания!
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -118,7 +117,7 @@ export default function CarCard({ car, onClick, priority = false }: CarCardProps
                   key={`${car.id}-photo-${index}`} 
                   className="photo-gallery-item h-full relative"
                 >
-                  {/* ИСПРАВЛЕНО: Используем Next.js Image для кэширования и оптимизации */}
+                  {/* ИСПРАВЛЕНО: Убраны onLoad/onError - не нужны для визуала */}
                   <Image
                     src={photo}
                     alt={`${car.brand} ${car.model} - фото ${index + 1}`}
@@ -127,8 +126,6 @@ export default function CarCard({ car, onClick, priority = false }: CarCardProps
                     className="object-cover"
                     priority={priority && index === 0}
                     loading={index === 0 ? 'eager' : 'lazy'}
-                    onLoad={() => index === 0 && setImageLoaded(true)}
-                    onError={() => index === 0 && setImageError(true)}
                     draggable={false}
                   />
                 </div>
@@ -227,4 +224,6 @@ export default function CarCard({ car, onClick, priority = false }: CarCardProps
       </div>
     </div>
   );
-}
+});
+
+export default CarCard;
