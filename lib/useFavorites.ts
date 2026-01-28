@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useSyncExternalStore } from 'react';
+import { useCallback, useSyncExternalStore, useRef, useEffect } from 'react';
 
 const FAVORITES_KEY = 'topgear_favorites';
 
@@ -16,10 +16,9 @@ let isInitialized = false;
 const listeners = new Set<() => void>();
 
 // ИСПРАВЛЕНО: Кэшированный пустой массив для серверного рендеринга
-// Это предотвращает infinite loop в useSyncExternalStore
 const EMPTY_FAVORITES: FavoriteItem[] = [];
 
-// Инициализация из localStorage
+// Инициализация из localStorage (синхронная, без side effects)
 function initFavorites() {
   if (isInitialized || typeof window === 'undefined') return;
   try {
@@ -56,23 +55,34 @@ function subscribe(listener: () => void) {
 
 // Получить текущий snapshot
 function getSnapshot(): FavoriteItem[] {
+  // ИСПРАВЛЕНО: Инициализируем синхронно при первом чтении
+  if (!isInitialized && typeof window !== 'undefined') {
+    initFavorites();
+  }
   return favorites;
 }
 
-// ИСПРАВЛЕНО: Возвращаем КЭШИРОВАННЫЙ пустой массив
-// Раньше возвращался новый [] каждый раз → infinite loop
+// Возвращаем кэшированный пустой массив для SSR
 function getServerSnapshot(): FavoriteItem[] {
   return EMPTY_FAVORITES;
 }
 
 export function useFavorites() {
-  // Инициализация при первом рендере
+  // ИСПРАВЛЕНО: Убрали useEffect с notifyListeners
+  // Это вызывало каскадные ре-рендеры всех компонентов!
+  
+  // Трекер первого рендера для избежания лишних уведомлений
+  const isFirstRender = useRef(true);
+  
   useEffect(() => {
-    initFavorites();
-    notifyListeners();
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      // Не вызываем notifyListeners при первом рендере
+      // Данные уже загружены синхронно в getSnapshot
+    }
   }, []);
 
-  // Подписка на изменения
+  // Подписка на изменения (реактивное состояние)
   const currentFavorites = useSyncExternalStore(
     subscribe,
     getSnapshot,
@@ -104,13 +114,15 @@ export function useFavorites() {
     return !exists;
   }, []);
 
+  // ИСПРАВЛЕНО: isFavorite теперь использует currentFavorites из useSyncExternalStore
+  // а не глобальную переменную напрямую
   const isFavorite = useCallback((id: string, type: 'car' | 'plate' | 'tire') => {
-    return favorites.some(f => f.id === id && f.type === type);
-  }, []);
+    return currentFavorites.some(f => f.id === id && f.type === type);
+  }, [currentFavorites]);
 
   const getFavoritesByType = useCallback((type: 'car' | 'plate' | 'tire') => {
-    return favorites.filter(f => f.type === type).map(f => f.id);
-  }, []);
+    return currentFavorites.filter(f => f.type === type).map(f => f.id);
+  }, [currentFavorites]);
 
   const clearFavorites = useCallback(() => {
     favorites = [];
