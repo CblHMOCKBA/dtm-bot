@@ -186,6 +186,12 @@ export default function CarDetailPage() {
     if (car.post_url.includes('t.me/') || car.post_url.includes('telegram.me/')) {
       if (tg?.openTelegramLink) {
         tg.openTelegramLink(car.post_url);
+        // Сворачиваем бот (minimize доступен с Telegram API 7.10+)
+        // @ts-ignore - minimize может быть недоступен в старых версиях
+        if (tg.minimize) {
+          // @ts-ignore
+          tg.minimize();
+        }
       } else {
         window.open(car.post_url, '_blank');
       }
