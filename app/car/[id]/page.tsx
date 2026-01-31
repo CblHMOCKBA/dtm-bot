@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { Car } from '@/types';
 import { getTelegramWebApp, shareCarLink } from '@/lib/telegram';
 import { sendTelegramMessage, openTelegramChat } from '@/lib/messaging';
-import { Share2, Phone, MessageCircle, Zap, Gauge, Settings2, Palette, Car as CarIcon, ChevronDown, ChevronUp } from 'lucide-react';
+import { Share2, Phone, MessageCircle, Zap, Gauge, Settings2, Palette, Car as CarIcon, ChevronDown, ChevronUp, Send } from 'lucide-react';
 import { formatPrice, formatMileage } from '@/lib/formatters';
 import { useNavigation } from '@/components/NavigationProvider';
 import CarCard from '@/components/CarCard';
@@ -170,6 +170,27 @@ export default function CarDetailPage() {
   const handleShare = () => {
     if (car) {
       shareCarLink(car.id, `${car.brand} ${car.model}`);
+    }
+  };
+
+  // Обработчик открытия поста в канале
+  const handleOpenPost = () => {
+    if (!car?.post_url) return;
+    
+    const tg = getTelegramWebApp();
+    if (tg?.HapticFeedback) {
+      tg.HapticFeedback.impactOccurred('light');
+    }
+    
+    // Если это ссылка на Telegram - открываем через openTelegramLink
+    if (car.post_url.includes('t.me/') || car.post_url.includes('telegram.me/')) {
+      if (tg?.openTelegramLink) {
+        tg.openTelegramLink(car.post_url);
+      } else {
+        window.open(car.post_url, '_blank');
+      }
+    } else {
+      window.open(car.post_url, '_blank');
     }
   };
 
@@ -472,28 +493,45 @@ export default function CarDetailPage() {
             backdropFilter: 'blur(12px)'
           }}
         >
-          <div className="grid grid-cols-2 gap-3 max-w-lg mx-auto">
-            <button
-              onClick={handleContact}
-              className="flex items-center justify-center gap-2 py-3 rounded-xl transition-all active:scale-95 overflow-hidden"
-              style={{
-                background: 'linear-gradient(135deg, #DC0000, #CC003A, #990029)',
-                boxShadow: '0 4px 15px rgba(204, 0, 58, 0.3)',
-              }}
-            >
-              <MessageCircle className="w-5 h-5 text-white" />
-              <span className="text-white font-bold text-sm tracking-wide uppercase">Написать</span>
-            </button>
-            <button
-              onClick={handleCall}
-              className="flex items-center justify-center gap-2 py-3 rounded-xl border border-tg-hint/30 transition-all active:scale-95 hover:border-tg-accent/50 overflow-hidden"
-              style={{
-                background: 'rgba(255, 255, 255, 0.03)',
-              }}
-            >
-              <Phone className="w-5 h-5 text-white" />
-              <span className="text-white font-bold text-sm tracking-wide uppercase">Позвонить</span>
-            </button>
+          <div className="max-w-lg mx-auto space-y-2">
+            {/* Кнопка "Пост в канале" - показывается только если есть ссылка */}
+            {car?.post_url && (
+              <button
+                onClick={handleOpenPost}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[#CC003A]/30 transition-all active:scale-95 overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(204, 0, 58, 0.15), rgba(153, 0, 41, 0.1))',
+                }}
+              >
+                <Send className="w-4 h-4 text-[#CC003A]" />
+                <span className="text-[#CC003A] font-bold text-xs tracking-wide uppercase">Смотреть в канале DTM</span>
+              </button>
+            )}
+            
+            {/* Основные кнопки */}
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={handleContact}
+                className="flex items-center justify-center gap-2 py-3 rounded-xl transition-all active:scale-95 overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, #DC0000, #CC003A, #990029)',
+                  boxShadow: '0 4px 15px rgba(204, 0, 58, 0.3)',
+                }}
+              >
+                <MessageCircle className="w-5 h-5 text-white" />
+                <span className="text-white font-bold text-sm tracking-wide uppercase">Написать</span>
+              </button>
+              <button
+                onClick={handleCall}
+                className="flex items-center justify-center gap-2 py-3 rounded-xl border border-tg-hint/30 transition-all active:scale-95 hover:border-tg-accent/50 overflow-hidden"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.03)',
+                }}
+              >
+                <Phone className="w-5 h-5 text-white" />
+                <span className="text-white font-bold text-sm tracking-wide uppercase">Позвонить</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

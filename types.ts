@@ -13,6 +13,7 @@ export interface Car {
   status: CarStatus;
   created_at: string;
   hide_new_badge?: boolean;
+  post_url?: string; // Ссылка на пост в канале
 }
 
 export interface CarSpecs {

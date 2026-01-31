@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { getTelegramWebApp, isAdmin } from '@/lib/telegram';
 import { Car, CarSpecs, CarStatus } from '@/types';
-import { X, ArrowLeft, Upload, Save, Trash2 } from 'lucide-react';
+import { X, ArrowLeft, Upload, Save, Trash2, Link } from 'lucide-react';
 import { useToast } from '@/components/ToastProvider';
 import { validateCarForm, ValidationErrors } from '@/lib/validation';
 
@@ -40,6 +40,7 @@ export default function EditCarPage() {
     photos: [] as string[],
     status: 'available' as CarStatus,
     hide_new_badge: false,
+    post_url: '',
     specs: { engine: '', power: '', transmission: '', drive: '', color: '', body_type: '', fuel: '', interior_color: '' } as CarSpecs,
   });
 
@@ -72,6 +73,7 @@ export default function EditCarPage() {
         photos: data.photos || [],
         status: data.status || 'available',
         hide_new_badge: data.hide_new_badge || false,
+        post_url: data.post_url || '',
         specs: data.specs || {},
       });
     } catch (error: any) {
@@ -244,6 +246,7 @@ export default function EditCarPage() {
         photos: formData.photos,
         status: formData.status,
         hide_new_badge: formData.hide_new_badge,
+        post_url: formData.post_url || null,
         specs: formData.specs,
       }).eq('id', params.id);
       if (error) throw error;
@@ -365,6 +368,31 @@ export default function EditCarPage() {
               <span style={{ fontSize: '12px', fontWeight: 'bold' }}>Скрыть бейдж "NEW"</span>
             </label>
           </div>
+        </div>
+
+        {/* Ссылка на пост */}
+        <div style={{ background: 'linear-gradient(135deg, rgba(15, 14, 24, 0.8), rgba(26, 25, 37, 0.6))', backdropFilter: 'blur(10px)', border: '1px solid rgba(204, 0, 58, 0.2)', borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+            <div style={{ width: '4px', height: '20px', background: '#CC003A', borderRadius: '2px' }}></div>
+            <h2 style={{ fontSize: '16px', fontWeight: 'bold', textTransform: 'uppercase' }}>Ссылка на пост</h2>
+          </div>
+          <div style={{ position: 'relative' }}>
+            <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#CC003A' }}>
+              <Link style={{ width: '18px', height: '18px' }} />
+            </div>
+            <input 
+              type="url" 
+              value={formData.post_url} 
+              onChange={(e) => setFormData({ ...formData, post_url: e.target.value })} 
+              placeholder="https://t.me/dtm_auto/123" 
+              style={{ ...DARK_INPUT_STYLE, paddingLeft: '40px' }} 
+              onFocus={(e) => e.currentTarget.style.borderColor = 'rgba(204, 0, 58, 0.8)'} 
+              onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(204, 0, 58, 0.2)'} 
+            />
+          </div>
+          <p style={{ fontSize: '11px', color: '#6B7280', marginTop: '8px' }}>
+            Скопируйте ссылку на пост в канале DTM (необязательно)
+          </p>
         </div>
 
         {/* Характеристики */}
