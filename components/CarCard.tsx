@@ -1,7 +1,7 @@
 'use client';
 
 import { Car } from '@/types';
-import { Heart } from 'lucide-react';
+import { Heart, Send } from 'lucide-react';
 import { useFavorites } from '@/lib/useFavorites';
 import { getTelegramWebApp } from '@/lib/telegram';
 import { useState, useRef, memo } from 'react';
@@ -22,9 +22,6 @@ const CarCard = memo(function CarCard({ car, onClick, priority = false }: CarCar
   const startX = useRef(0);
   const scrollLeft = useRef(0);
   
-  // ИСПРАВЛЕНО: Убрали imageLoaded/imageError состояния
-  // Next.js Image сам управляет загрузкой, не нужно сбрасывать состояние
-  
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('ru-RU').format(price);
   };
@@ -39,9 +36,6 @@ const CarCard = memo(function CarCard({ car, onClick, priority = false }: CarCar
   const hasMultiplePhotos = car.photos && car.photos.length > 1;
   const photoCount = car.photos?.length || 0;
 
-  // УДАЛЕНО: useEffect со сбросом imageLoaded
-  // Это была главная причина мерцания!
-
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsAnimating(true);
@@ -52,6 +46,30 @@ const CarCard = memo(function CarCard({ car, onClick, priority = false }: CarCar
     const tg = getTelegramWebApp();
     if (tg?.HapticFeedback) {
       tg.HapticFeedback.impactOccurred('light');
+    }
+  };
+
+  // Открытие поста в канале
+  const handleOpenPost = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!car.post_url) return;
+    
+    const tg = getTelegramWebApp();
+    if (tg?.HapticFeedback) {
+      tg.HapticFeedback.impactOccurred('light');
+    }
+    
+    if (car.post_url.includes('t.me/') || car.post_url.includes('telegram.me/')) {
+      if (tg?.openTelegramLink) {
+        tg.openTelegramLink(car.post_url);
+        setTimeout(() => {
+          tg.close();
+        }, 100);
+      } else {
+        window.open(car.post_url, '_blank');
+      }
+    } else {
+      window.open(car.post_url, '_blank');
     }
   };
 
@@ -117,7 +135,6 @@ const CarCard = memo(function CarCard({ car, onClick, priority = false }: CarCar
                   key={`${car.id}-photo-${index}`} 
                   className="photo-gallery-item h-full relative"
                 >
-                  {/* ИСПРАВЛЕНО: Убраны onLoad/onError - не нужны для визуала */}
                   <Image
                     src={photo}
                     alt={`${car.brand} ${car.model} - фото ${index + 1}`}
@@ -195,8 +212,8 @@ const CarCard = memo(function CarCard({ car, onClick, priority = false }: CarCar
       </div>
 
       {/* Контент */}
-      <div className="p-3 space-y-2">
-        <h3 className="font-bold text-base text-white line-clamp-1">
+      <div className="p-3 space-y-2 relative">
+        <h3 className="font-bold text-base text-white line-clamp-1 pr-8">
           {car.brand} {car.model}
         </h3>
 
@@ -204,7 +221,7 @@ const CarCard = memo(function CarCard({ car, onClick, priority = false }: CarCar
           {formatPrice(car.price)} ₽
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-tg-hint flex-wrap">
+        <div className="flex items-center gap-2 text-xs text-tg-hint flex-wrap pr-8">
           <span>{car.year}</span>
           <span className="text-tg-accent">•</span>
           <span>{car.mileage.toLocaleString()} км</span>
@@ -221,6 +238,21 @@ const CarCard = memo(function CarCard({ car, onClick, priority = false }: CarCar
             </>
           )}
         </div>
+
+        {/* Кнопка Telegram - открыть пост в канале */}
+        {!isSold && car.post_url && (
+          <button
+            onClick={handleOpenPost}
+            className="absolute bottom-3 right-3 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 active:scale-90 hover:scale-110 group/tg"
+            style={{
+              background: 'linear-gradient(135deg, #CC003A, #990029)',
+              boxShadow: '0 2px 8px rgba(204, 0, 58, 0.4)',
+            }}
+            aria-label="Смотреть в канале DTM"
+          >
+            <Send className="w-4 h-4 text-white transition-transform duration-300 group-hover/tg:translate-x-[1px] group-hover/tg:-translate-y-[1px]" />
+          </button>
+        )}
       </div>
     </div>
   );
