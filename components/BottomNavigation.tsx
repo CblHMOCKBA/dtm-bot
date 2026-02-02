@@ -2,28 +2,26 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Car, Heart, BarChart3, Phone, Settings } from 'lucide-react';
+import { Car, Heart, Phone, Settings, ArrowRightLeft } from 'lucide-react';
 import { isAdmin } from '@/lib/telegram';
 import { useFavorites } from '@/lib/useFavorites';
-import { supabase } from '@/lib/supabase';
 import { useNavigation } from '@/components/NavigationProvider';
 
 interface BottomNavigationProps {
   className?: string;
+  onTradeInClick?: () => void;
 }
 
-export default function BottomNavigation({ className = '' }: BottomNavigationProps) {
+export default function BottomNavigation({ className = '', onTradeInClick }: BottomNavigationProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { navigateForward } = useNavigation();
   const { count: favoritesCount } = useFavorites();
   const [isAdminUser, setIsAdminUser] = useState(false);
-  const [totalSold, setTotalSold] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     setIsAdminUser(isAdmin());
-    loadSoldCount();
     
     // Анимация появления снизу
     const timer = setTimeout(() => {
@@ -32,21 +30,6 @@ export default function BottomNavigation({ className = '' }: BottomNavigationPro
     
     return () => clearTimeout(timer);
   }, []);
-
-  const loadSoldCount = async () => {
-    try {
-      const [soldResult, settingsResult] = await Promise.all([
-        supabase.from('cars').select('*', { count: 'exact', head: true }).eq('status', 'sold'),
-        supabase.from('settings').select('manual_sold_count').eq('id', 1).single()
-      ]);
-
-      const dbSold = soldResult.count || 0;
-      const manualSold = settingsResult.data?.manual_sold_count || 0;
-      setTotalSold(dbSold + manualSold);
-    } catch (error) {
-      console.error('Error loading sold count:', error);
-    }
-  };
 
   const handleNavigate = (path: string) => {
     if (pathname !== path) {
@@ -96,18 +79,13 @@ export default function BottomNavigation({ className = '' }: BottomNavigationPro
           <span className="text-xs font-semibold">Избранное</span>
         </button>
 
-        {/* Продано */}
+        {/* Trade-In */}
         <button 
-          onClick={() => handleNavigate('/sold')}
-          className={`refined-nav-button ${isActive('/sold') ? 'active' : ''}`}
+          onClick={onTradeInClick}
+          className="refined-nav-button"
         >
-          <BarChart3 className="w-6 h-6" />
-          {totalSold > 0 && (
-            <span className="absolute top-1 right-2 bg-amber-500 text-white text-xs px-1.5 rounded-full font-bold animate-pulse">
-              {totalSold}
-            </span>
-          )}
-          <span className="text-xs font-semibold">Продано</span>
+          <ArrowRightLeft className="w-6 h-6" />
+          <span className="text-xs font-semibold">Trade-In</span>
         </button>
 
         {/* Контакты */}

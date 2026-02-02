@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { Car, Phone, Heart, BarChart3, Settings, Grid2X2, LayoutGrid, FileText, MessageCircle, ArrowUpDown, ArrowUp, ArrowDown, Calendar, DollarSign, Send, X, Search, Moon, Sun, ArrowRightLeft } from 'lucide-react';
+import { Car, Phone, Heart, Settings, Grid2X2, LayoutGrid, MessageCircle, ArrowUpDown, ArrowUp, ArrowDown, Calendar, DollarSign, X, Search, Moon, Sun, ArrowRightLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { isAdmin, getTelegramWebApp } from '@/lib/telegram';
 import { sendTelegramMessage, openTelegramChat } from '@/lib/messaging';
@@ -29,7 +29,6 @@ export default function Home() {
   const [searchResults, setSearchResults] = useState<CarType[]>([]);
   const [stats, setStats] = useState({ total: 0, sold: 0, manualSold: 0, available: 0, premium: 0 });
   const [showSort, setShowSort] = useState(false);
-  const [showRequestForm, setShowRequestForm] = useState(false);
   const [sortOption, setSortOption] = useState<SortOption>('date_desc');
   const [viewMode, setViewMode] = useState<'single' | 'double'>('double');
   const [phoneNumber, setPhoneNumber] = useState('+7 980 679 0176');
@@ -39,12 +38,6 @@ export default function Home() {
   const [showAllBrandsModal, setShowAllBrandsModal] = useState(false);
   const [showTradeIn, setShowTradeIn] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
-
-  // Форма заявки
-  const [requestBrand, setRequestBrand] = useState('');
-  const [requestBudget, setRequestBudget] = useState('');
-  const [requestYear, setRequestYear] = useState('');
-  const [requestComment, setRequestComment] = useState('');
 
   useEffect(() => {
     const tg = getTelegramWebApp();
@@ -303,38 +296,6 @@ export default function Home() {
   const remainingBrandsCount = brandCounts.length - 4;
   const totalCarsCount = cars.filter(car => car.status !== 'sold').length;
 
-  const handleSubmitRequest = () => {
-    if (!requestBrand.trim() && !requestBudget.trim() && !requestComment.trim()) {
-      return;
-    }
-    
-    let message = `🔥 ЗАЯВКА НА ПОДБОР АВТО\n\n`;
-    
-    if (requestBrand.trim()) {
-      message += `🚗 Марка/Модель: ${requestBrand}\n`;
-    }
-    if (requestBudget.trim()) {
-      message += `💰 Бюджет: ${requestBudget}\n`;
-    }
-    if (requestYear.trim()) {
-      message += `📅 Год: от ${requestYear}\n`;
-    }
-    if (requestComment.trim()) {
-      message += `📝 Пожелания: ${requestComment}\n`;
-    }
-    
-    message += `\n⚡ Жду обратную связь!`;
-
-    // ИСПРАВЛЕНО: Используем надёжную функцию
-    sendTelegramMessage(telegramUsername, message);
-
-    setShowRequestForm(false);
-    setRequestBrand('');
-    setRequestBudget('');
-    setRequestYear('');
-    setRequestComment('');
-  };
-
   const getSortLabel = () => {
     switch (sortOption) {
       case 'price_asc': return 'Цена ↑';
@@ -357,8 +318,6 @@ export default function Home() {
     { value: 'inTransit', label: 'В пути' },
     { value: 'order', label: 'Под заказ' }
   ];
-
-  const totalSold = stats.sold + stats.manualSold;
 
   return (
     <div className="min-h-screen pb-20">
@@ -412,18 +371,8 @@ export default function Home() {
             />
           </div>
 
-          {/* Правая часть - Trade-In + Позвонить */}
+          {/* Правая часть - Позвонить */}
           <div className="flex items-center gap-2">
-            {/* Кнопка Trade-In */}
-            <button
-              onClick={() => setShowTradeIn(true)}
-              className="h-11 px-3 rounded-xl bg-gradient-to-r from-[#CC003A]/20 to-[#990029]/20 border border-[#CC003A]/30 flex items-center gap-1.5 transition-all duration-300 active:scale-90 hover:scale-105 hover:border-[#CC003A]/50 group"
-              aria-label="Trade-In"
-            >
-              <ArrowRightLeft className="w-4 h-4 text-[#CC003A] group-hover:text-white transition-colors" />
-              <span className="text-xs font-bold text-[#CC003A] group-hover:text-white transition-colors">Trade-In</span>
-            </button>
-            
             {/* Кнопка Позвонить */}
             <button
               onClick={handleCall}
@@ -498,30 +447,6 @@ export default function Home() {
               </button>
             )}
           </div>
-        </div>
-
-        {/* Статистика - ИСПРАВЛЕНО: одинаковая структура для всех */}
-        <div className="grid grid-cols-3 gap-2 px-3 mt-1 mb-2">
-          <div className="bg-white/5 backdrop-blur-sm rounded-xl py-3 px-2 text-center border border-white/10 hover:border-tg-accent/30 transition-all">
-            <div className="text-xl font-bold text-tg-accent leading-none">{stats.available}</div>
-            <div className="text-[8px] text-tg-hint uppercase tracking-wider font-medium mt-1.5">В наличии</div>
-          </div>
-          <button 
-            onClick={() => { navigateForward(); router.push('/sold'); }}
-            className="bg-white/5 backdrop-blur-sm rounded-xl py-3 px-2 text-center border border-white/10 transition-all duration-300 active:scale-95 hover:scale-[1.02] hover:border-tg-accent/40 hover:bg-white/10"
-          >
-            <div className="text-xl font-bold text-white leading-none">{totalSold}</div>
-            <div className="text-[8px] text-tg-hint uppercase tracking-wider font-medium mt-1.5">Продано</div>
-          </button>
-          <button 
-            onClick={() => setShowRequestForm(true)}
-            className="bg-white/5 backdrop-blur-sm rounded-xl py-3 px-2 text-center border border-white/10 transition-all duration-300 active:scale-95 hover:scale-[1.02] hover:border-green-500/40 hover:bg-white/10"
-          >
-            <div className="text-xl font-bold text-green-400 leading-none flex items-center justify-center">
-              <FileText className="w-5 h-5" />
-            </div>
-            <div className="text-[8px] text-tg-hint uppercase tracking-wider font-medium mt-1.5">Заявка</div>
-          </button>
         </div>
       </div>
 
@@ -775,132 +700,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Модальное окно формы заявки */}
-      {showRequestForm && (
-        <div 
-          className="fixed inset-0 z-50 flex items-end justify-center animate-fade-in"
-          style={{
-            background: 'rgba(4, 3, 14, 0.9)',
-            backdropFilter: 'blur(8px)'
-          }}
-          onClick={() => setShowRequestForm(false)}
-        >
-          <div 
-            className="w-full max-w-md rounded-t-3xl p-5 animate-slide-up"
-            style={{
-              background: 'linear-gradient(135deg, rgba(15, 14, 24, 0.98), rgba(26, 25, 37, 0.95))',
-              backdropFilter: 'blur(20px)',
-              borderTop: '2px solid rgba(34, 197, 94, 0.5)',
-              boxShadow: '0 -10px 40px rgba(34, 197, 94, 0.2)',
-              maxHeight: '85vh',
-              overflowY: 'auto'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold brand-name text-green-400">ПОДБОР АВТО</h2>
-              <button
-                onClick={() => setShowRequestForm(false)}
-                className="w-9 h-9 rounded-full bg-tg-secondary-bg flex items-center justify-center active:scale-95 transition-transform"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <p className="text-xs text-tg-hint mb-4">
-              Заполните форму и мы подберём автомобиль под ваши требования
-            </p>
-
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs text-tg-hint mb-1.5 uppercase tracking-wider">
-                  Марка / Модель
-                </label>
-                <input
-                  type="text"
-                  value={requestBrand}
-                  onChange={(e) => setRequestBrand(e.target.value)}
-                  placeholder="Например: BMW X5, Mercedes GLE"
-                  className="w-full px-4 py-3 rounded-xl border border-tg-hint/30 text-white text-base placeholder:text-tg-hint/50 focus:border-green-500/50 focus:outline-none transition-colors"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    color: '#FFFFFF',
-                    caretColor: '#22c55e'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs text-tg-hint mb-1.5 uppercase tracking-wider">
-                  Бюджет
-                </label>
-                <input
-                  type="text"
-                  value={requestBudget}
-                  onChange={(e) => setRequestBudget(e.target.value)}
-                  placeholder="Например: до 5 млн, 3-7 млн"
-                  className="w-full px-4 py-3 rounded-xl border border-tg-hint/30 text-white text-base placeholder:text-tg-hint/50 focus:border-green-500/50 focus:outline-none transition-colors"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    color: '#FFFFFF',
-                    caretColor: '#22c55e'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs text-tg-hint mb-1.5 uppercase tracking-wider">
-                  Год выпуска (от)
-                </label>
-                <input
-                  type="text"
-                  value={requestYear}
-                  onChange={(e) => setRequestYear(e.target.value)}
-                  placeholder="Например: 2020"
-                  className="w-full px-4 py-3 rounded-xl border border-tg-hint/30 text-white text-base placeholder:text-tg-hint/50 focus:border-green-500/50 focus:outline-none transition-colors"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    color: '#FFFFFF',
-                    caretColor: '#22c55e'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs text-tg-hint mb-1.5 uppercase tracking-wider">
-                  Пожелания
-                </label>
-                <textarea
-                  value={requestComment}
-                  onChange={(e) => setRequestComment(e.target.value)}
-                  placeholder="Цвет, комплектация, пробег и т.д."
-                  rows={3}
-                  className="w-full px-4 py-3 rounded-xl border border-tg-hint/30 text-white text-base placeholder:text-tg-hint/50 focus:border-green-500/50 focus:outline-none transition-colors resize-none"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    color: '#FFFFFF',
-                    caretColor: '#22c55e'
-                  }}
-                />
-              </div>
-
-              <button
-                onClick={handleSubmitRequest}
-                disabled={!requestBrand.trim() && !requestBudget.trim() && !requestComment.trim()}
-                className="w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-4"
-                style={{
-                  background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-                  boxShadow: '0 4px 20px rgba(34, 197, 94, 0.3)'
-                }}
-              >
-                <Send className="w-5 h-5" />
-                <span>Отправить заявку</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Модальное окно "Все марки" */}
       {showAllBrandsModal && (
         <div 
@@ -1005,14 +804,9 @@ export default function Home() {
             <span className="text-[10px] font-semibold">Избранное</span>
           </button>
 
-          <button onClick={() => { navigateForward(); router.push('/sold'); }} className="refined-nav-button">
-            <BarChart3 className="w-6 h-6" />
-            {totalSold > 0 && (
-              <span className="absolute top-0 right-1 bg-amber-500 text-white text-[10px] px-1 rounded-full font-bold animate-pulse">
-                {totalSold}
-              </span>
-            )}
-            <span className="text-[10px] font-semibold">Продано</span>
+          <button onClick={() => setShowTradeIn(true)} className="refined-nav-button">
+            <ArrowRightLeft className="w-6 h-6" />
+            <span className="text-[10px] font-semibold">Trade-In</span>
           </button>
 
           <button onClick={() => { navigateForward(); router.push('/contact'); }} className="refined-nav-button">
