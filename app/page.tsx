@@ -11,7 +11,6 @@ import CarCard from '@/components/CarCard';
 import CarCardSkeleton from '@/components/CarCardSkeleton';
 import { useFavorites } from '@/lib/useFavorites';
 import { useNavigation } from '@/components/NavigationProvider';
-import TradeInModal from '@/components/TradeInModal';
 
 type SortOption = 'price_asc' | 'price_desc' | 'date_asc' | 'date_desc';
 
@@ -36,7 +35,6 @@ export default function Home() {
   const [darkMode, setDarkMode] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState<string>('all');
   const [showAllBrandsModal, setShowAllBrandsModal] = useState(false);
-  const [showTradeIn, setShowTradeIn] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -804,7 +802,7 @@ export default function Home() {
             <span className="text-[10px] font-semibold">Избранное</span>
           </button>
 
-          <button onClick={() => setShowTradeIn(true)} className="refined-nav-button">
+          <button onClick={() => { navigateForward(); router.push('/trade-in'); }} className="refined-nav-button">
             <ArrowRightLeft className="w-6 h-6" />
             <span className="text-[10px] font-semibold">Trade-In</span>
           </button>
@@ -822,13 +820,6 @@ export default function Home() {
           )}
         </div>
       </div>
-
-      {/* Trade-In Modal */}
-      <TradeInModal
-        isOpen={showTradeIn}
-        onClose={() => setShowTradeIn(false)}
-        cars={cars}
-      />
     </div>
   );
 }

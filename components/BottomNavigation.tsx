@@ -9,10 +9,9 @@ import { useNavigation } from '@/components/NavigationProvider';
 
 interface BottomNavigationProps {
   className?: string;
-  onTradeInClick?: () => void;
 }
 
-export default function BottomNavigation({ className = '', onTradeInClick }: BottomNavigationProps) {
+export default function BottomNavigation({ className = '' }: BottomNavigationProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { navigateForward } = useNavigation();
@@ -81,8 +80,8 @@ export default function BottomNavigation({ className = '', onTradeInClick }: Bot
 
         {/* Trade-In */}
         <button 
-          onClick={onTradeInClick}
-          className="refined-nav-button"
+          onClick={() => handleNavigate('/trade-in')}
+          className={`refined-nav-button ${isActive('/trade-in') ? 'active' : ''}`}
         >
           <ArrowRightLeft className="w-6 h-6" />
           <span className="text-xs font-semibold">Trade-In</span>
