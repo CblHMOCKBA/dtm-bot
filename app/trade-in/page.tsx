@@ -233,7 +233,7 @@ export default function TradeInPage() {
     <div className="min-h-screen pb-24" style={{ background: '#04030E' }}>
       {/* Header */}
       <div 
-        className="sticky top-0 z-20 px-4 py-4 border-b border-white/10"
+        className="sticky top-0 z-20 px-4 pt-14 pb-4 border-b border-white/10"
         style={{ 
           background: 'linear-gradient(180deg, rgba(15, 14, 24, 0.98) 0%, rgba(4, 3, 14, 0.95) 100%)',
           backdropFilter: 'blur(10px)'
